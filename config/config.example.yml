@@ -1,0 +1,13 @@
+# Backend server, only ntfy right now
+backend: ntfy
+
+# Backend host url and credentials
+host: https://ntfy.sh
+user: clipshift
+pass: changeme
+
+# ntfy settings
+topic: clipshift
+
+# logging
+loglevel: error
