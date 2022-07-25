@@ -11,9 +11,11 @@ var (
 	Log *logrus.Logger
 )
 
-func LoggerInit(loglevel string) {
+func init() {
 	Log = logrus.New()
+}
 
+func LoggerInit(loglevel string) {
 	switch loglevel {
 	case logrus.TraceLevel.String():
 		Log.SetLevel(logrus.TraceLevel)

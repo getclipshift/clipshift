@@ -2,12 +2,15 @@ package config
 
 import (
 	_ "embed"
-	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/gookit/config/v2"
 	"github.com/gookit/config/v2/yaml"
+	"github.com/jhotmann/clipshift/logger"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -37,9 +40,10 @@ func ConfigInit() {
 
 	err := config.LoadFiles(configFile)
 	if err != nil {
-		fmt.Println("ERROR: config file not found, default config created")
+		logger.Log.Error("Config file not found, default config created")
 		os.MkdirAll(strings.Replace(configFile, "config.yml", "", 1), 0600)
 		os.WriteFile(configFile, exampleConfig, 0600)
+		openConfig(configFile)
 		os.Exit(1)
 	}
 	err = config.BindStruct("", &UserConfig)
@@ -49,4 +53,23 @@ func ConfigInit() {
 	if UserConfig.Client == "" {
 		UserConfig.Client = hostname
 	}
+}
+
+func openConfig(filePath string) {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "linux":
+		cmd = exec.Command("xdg-open", filePath)
+	case "windows":
+		cmd = exec.Command("cmd", "/C", "start", filepath.FromSlash(filePath))
+	case "darwin":
+		cmd = exec.Command("open", filePath)
+	}
+	err := cmd.Start()
+	if err == nil {
+		cmd.Wait()
+	} else {
+		logger.Log.WithField("Error", err.Error()).Error("Couldn't open config in editor")
+	}
+
 }

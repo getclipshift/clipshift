@@ -11,9 +11,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/jhotmann/clipshift/config"
 	"github.com/jhotmann/clipshift/logger"
-	"github.com/jhotmann/clipshift/ui"
 	"github.com/sirupsen/logrus"
-	"golang.design/x/clipboard"
 )
 
 var (
@@ -43,11 +41,11 @@ func ntfyStreamOpen() {
 		Get(fmt.Sprintf("%s/%s/json", config.UserConfig.Host, config.UserConfig.Topic))
 	if err != nil {
 		if strings.Contains(err.Error(), "no such host") {
-			fmt.Println(err.Error(), "\nWaiting 5 seconds and trying again")
+			logger.Log.WithField("Error", err.Error()).Error("Waiting 5 seconds and trying again")
 			time.Sleep(5 * time.Second)
 			ntfyStreamOpen()
 		} else {
-			fmt.Println(err.Error(), "\nWaiting 30 seconds and trying again")
+			logger.Log.WithField("Error", err.Error()).Error("Waiting 30 seconds and trying again")
 			time.Sleep(30 * time.Second)
 			ntfyStreamOpen()
 		}
@@ -62,22 +60,11 @@ func ntfyHandleMessages() {
 		var parsed NtfyMessage
 		err := json.Unmarshal([]byte(scanner.Text()), &parsed)
 		if err != nil {
-			fmt.Println("Error parsing message:", err)
+			logger.Log.WithField("Error", err.Error()).Error("Error parsing message")
 		} else if parsed.Event == NtfyEventTypes.Message {
-			if parsed.Title == config.UserConfig.Client || parsed.Message == lastReceived {
-				continue
-			}
-			lastReceived = parsed.Message
-
-			if encryptionEnabled {
-				lastReceived = decryptString(lastReceived)
-			}
-
-			clipboard.Write(clipboard.FmtText, []byte(lastReceived))
-			fmt.Printf("Clipboard received from %s: %s\n", parsed.Title, lastReceived)
-			ui.TraySetTooltip(fmt.Sprintf("%s - %s", time.Now().Format("20060102 15:04:05"), parsed.Title))
+			ClipReceived(parsed.Message, parsed.Title)
 		} else {
-			fmt.Println(parsed.Event, "response received")
+			logger.Log.WithField("Event", parsed.Event).Debug("Response received")
 		}
 	}
 }
@@ -88,7 +75,7 @@ func ntfyStreamReconnect() {
 }
 
 func ntfyStreamClose() {
-	fmt.Println("Closing stream")
+	logger.Log.Debug("Closing stream")
 	ntfyClient.GetClient().CloseIdleConnections()
 }
 

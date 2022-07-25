@@ -13,9 +13,8 @@ import (
 )
 
 var (
-	hostname     string
-	LastReceived string
-	interrupt    chan os.Signal
+	hostname  string
+	interrupt chan os.Signal
 )
 
 func main() {

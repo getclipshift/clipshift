@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jhotmann/clipshift/backends"
+	"github.com/jhotmann/clipshift/logger"
 	"golang.design/x/clipboard"
 )
 
@@ -15,14 +15,14 @@ var (
 func ClipInit() {
 	clipTextChannel = clipboard.Watch(context.TODO(), clipboard.FmtText)
 	go clipTextMonitor()
-	println("Clipboard is being monitored")
+	logger.Log.Debug("Clipboard is being monitored")
 }
 
 func clipTextMonitor() {
 	for data := range clipTextChannel {
 		clip := string(data)
-		if clip != LastReceived {
-			fmt.Println("Clipboard set: ", clip)
+		if clip != backends.LastReceived {
+			logger.Log.WithField("Clipboard", clip).Debug("Clipboard set")
 			backends.PostClip(clip)
 		}
 	}

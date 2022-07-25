@@ -8,6 +8,7 @@ pass: changeme
 
 # ntfy settings
 topic: clipshift
+encryptionkey: # leave blank for no encyrption
 
 # logging
 loglevel: error

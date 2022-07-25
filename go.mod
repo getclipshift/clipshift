@@ -31,6 +31,7 @@ require (
 require (
 	github.com/getlantern/systray v1.2.1
 	github.com/gookit/config/v2 v2.0.27
+	github.com/kardianos/service v1.2.1
 	github.com/sirupsen/logrus v1.8.1
 	golang.design/x/clipboard v0.6.1
 	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064
