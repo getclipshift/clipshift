@@ -6,6 +6,12 @@ import (
 	"runtime"
 
 	"github.com/getlantern/systray"
+	"github.com/mitchellh/go-homedir"
+)
+
+var (
+	macPlistPath string
+	startup      bool
 )
 
 //go:embed clipboard.png
@@ -15,6 +21,8 @@ var iconPng []byte
 var iconIco []byte
 
 func TrayInit() {
+	macPlistPath, _ = homedir.Expand("~/Library/LaunchAgents/io.github.clipshift.plist")
+	startup = getLaunchAtStartup()
 	systray.Run(trayOnReady, TrayOnExit)
 }
 
@@ -28,10 +36,22 @@ func trayOnReady() {
 	}
 
 	mQuit := systray.AddMenuItem("Exit", "Exit clipshift")
+	mStartup := systray.AddMenuItemCheckbox("Run at startup", "Run at startup", startup)
 
 	go func() {
 		<-mQuit.ClickedCh
 		systray.Quit()
+	}()
+
+	go func() {
+		<-mStartup.ClickedCh
+		startup = !startup
+		if startup {
+			mStartup.Check()
+		} else {
+			mStartup.Uncheck()
+		}
+		setLaunchAtStartup(startup)
 	}()
 }
 

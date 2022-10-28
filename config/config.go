@@ -41,8 +41,8 @@ func ConfigInit() {
 	err := config.LoadFiles(configFile)
 	if err != nil {
 		logger.Log.Error("Config file not found, default config created")
-		os.MkdirAll(strings.Replace(configFile, "config.yml", "", 1), 0600)
-		os.WriteFile(configFile, exampleConfig, 0600)
+		os.MkdirAll(strings.Replace(configFile, "config.yml", "", 1), 0755)
+		os.WriteFile(configFile, exampleConfig, 0755)
 		openConfig(configFile)
 		os.Exit(1)
 	}
