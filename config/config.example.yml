@@ -1,10 +1,10 @@
-# Backend server, only ntfy right now
-backend: ntfy
+# Backend server: ntfy or nostr
+backend: nostr
 
-# Backend host url and credentials
-host: https://ntfy.sh
-user: clipshift
-pass: changeme
+# Backend host url and credentials (always use a separate user from any main account)
+host: https://ntfy.sh (if ntfy), wss://some.relay.here (if nostr)
+user: username (if ntfy) or publickeyhex (if nostr)
+pass: password (if ntfy) or privatekeyhex (if nostr)\
 
 # ntfy settings
 topic: clipshift

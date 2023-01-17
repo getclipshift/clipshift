@@ -30,9 +30,10 @@ func BackendInit() {
 	switch configuredBackend {
 	case "ntfy":
 		ntfyInit()
-		break
+	case "nostr":
+		nostrInit()
 	default:
-		// TODO invalid backend
+		logger.Log.Fatalf("Invalid backend '%s'", configuredBackend)
 	}
 
 	encryptionEnabled = config.UserConfig.EncryptionKey != ""
@@ -47,7 +48,8 @@ func Close() {
 	switch configuredBackend {
 	case "ntfy":
 		ntfyStreamClose()
-		break
+	case "nostr":
+		nostrStreamClose()
 	}
 }
 
@@ -64,7 +66,8 @@ func PostClip(clip string) {
 	switch configuredBackend {
 	case "ntfy":
 		ntfyPostClip(clip)
-		break
+	case "nostr":
+		nostrPostClip(clip)
 	}
 }
 

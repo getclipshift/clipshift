@@ -1,0 +1,14 @@
+{
+   CFBundleName = clipshift;
+   CFBundleDisplayName = clipshift;
+   CFBundleIdentifier = "io.github.clipshift";
+   CFBundleVersion = "1.0";
+   CFBundleShortVersionString = "1.0";
+   CFBundleInfoDictionaryVersion = "6.0";
+   CFBundlePackageType = APPL;
+   CFBundleSignature = clipshift;
+   CFBundleExecutable = clipshift;
+   CFBundleIconFile = "clipshift.icns";
+   NSHighResolutionCapable = false;
+   LSUIElement = "1";
+}

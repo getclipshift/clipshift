@@ -63,6 +63,13 @@ func ntfyHandleMessages() {
 			logger.Log.WithField("Error", err.Error()).Error("Error parsing message")
 		} else if parsed.Event == NtfyEventTypes.Message {
 			ClipReceived(parsed.Message, parsed.Title)
+		} else if parsed.Event == NtfyEventTypes.KeepAlive {
+			logger.Log.Debug("keepalive received")
+		} else if parsed.Event == "" {
+			logger.Log.Error("Unnamed event received, waiting 30 seconds and reconnecting")
+			ntfyStreamClose()
+			time.Sleep(30 * time.Second)
+			ntfyStreamOpen()
 		} else {
 			logger.Log.WithField("Event", parsed.Event).Debug("Response received")
 		}
