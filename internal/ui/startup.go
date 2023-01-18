@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/jhotmann/clipshift/logger"
+	"github.com/jhotmann/clipshift/internal/logger"
 	"github.com/mitchellh/go-homedir"
 )
 
