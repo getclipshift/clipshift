@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	log     = logger.Log
 	cfgFile string
 	config  Config
 )
@@ -84,4 +85,11 @@ func initConfig() {
 	viper.Unmarshal(&config)
 
 	logger.LoggerInit(viper.GetString("logging.level"), viper.GetString("logging.destination"))
+}
+
+func errorZeroBackends() {
+	if len(config.Backends) == 0 {
+		log.Error("No backends configured")
+		os.Exit(1)
+	}
 }

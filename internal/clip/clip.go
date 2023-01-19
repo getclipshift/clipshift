@@ -12,6 +12,11 @@ var (
 	clipTextChannel <-chan []byte
 )
 
+func Get() string {
+	contents := clipboard.Read(clipboard.FmtText)
+	return string(contents)
+}
+
 func ClipInit() {
 	clipTextChannel = clipboard.Watch(context.TODO(), clipboard.FmtText)
 	go clipTextMonitor()

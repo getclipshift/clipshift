@@ -98,15 +98,16 @@ func (c *NostrClient) Post(clip string) error {
 	}
 	event.Sign(c.Config.Pass)
 	status := c.Relay.Publish(c.Ctx, event)
-	if status.String() == "success" {
-		return nil
+	if status.String() == "failed" {
+		return fmt.Errorf("%s received from relay", status)
 	}
-	return fmt.Errorf("%s received from relay", status)
+	log.Debugf("Clipboard sent to nostr relay %s", c.Config.Host)
+	return nil
 }
 
 func (c *NostrClient) Close() {
 	log.Debug("Closing nostr stream")
-	c.Subscription.Unsub()
-	c.Relay.Close()
 	c.Cancel()
+	c.Relay.Connection.Close()
+	c.Relay.Close()
 }

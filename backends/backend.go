@@ -1,6 +1,8 @@
 package backends
 
 import (
+	"crypto/cipher"
+
 	"github.com/jhotmann/clipshift/internal/logger"
 	"github.com/sirupsen/logrus"
 	"golang.design/x/clipboard"
@@ -9,8 +11,8 @@ import (
 var (
 	log          = logger.Log
 	LastReceived string
-	// nonce        []byte
-	// aead         cipher.AEAD
+	nonce        []byte
+	aead         cipher.AEAD
 
 	clients     []BackendClient
 	SyncActions = struct {
@@ -52,26 +54,6 @@ func New(config BackendConfig) BackendClient {
 	return client
 }
 
-// func BackendInit() {
-// 	configuredBackend = "" //config.UserConfig.Backend
-
-// 	switch configuredBackend {
-// 	case "ntfy":
-// 		ntfyInit()
-// 	case "nostr":
-// 		// nostrInit()
-// 	default:
-// 		logger.Log.Fatalf("Invalid backend '%s'", configuredBackend)
-// 	}
-
-// 	encryptionEnabled = false //config.UserConfig.EncryptionKey != ""
-// 	if encryptionEnabled {
-// 		encryptionkey = sha256.Sum256([]byte("")) //config.UserConfig.EncryptionKey))
-// 		nonce = make([]byte, chacha20poly1305.NonceSizeX)
-// 		aead, _ = chacha20poly1305.NewX(encryptionkey[:])
-// 	}
-// }
-
 func Close() {
 	for _, c := range clients {
 		c.Close()
@@ -82,29 +64,9 @@ func PostClip(clip string) {
 	for _, c := range clients {
 		c.Post(clip)
 	}
-	// if encryptionEnabled {
-	// 	old := clip
-	// 	clip = base64.StdEncoding.EncodeToString(encryptString(clip))
-	// 	logger.Log.WithFields(logrus.Fields{
-	// 		"Old": old,
-	// 		"New": clip,
-	// 	}).Info("Encrypted clip")
-	// }
-
-	// switch configuredBackend {
-	// case "ntfy":
-	// 	ntfyPostClip(clip)
-	// case "nostr":
-	// 	// nostrPostClip(clip)
-	// }
 }
 
 func ClipReceived(clip string, client string) {
-	// if encryptionEnabled {
-	// 	lastBytes, _ := base64.StdEncoding.DecodeString(clip)
-	// 	clip = decryptBytes(lastBytes)
-	// }
-
 	if clip == LastReceived {
 		return
 	}
@@ -117,11 +79,11 @@ func ClipReceived(clip string, client string) {
 	}).Debug("Clipboard received")
 }
 
-// func encryptString(msg string) []byte {
-// 	return aead.Seal(nil, nonce, []byte(msg), nil)
-// }
+func encryptString(msg string) []byte {
+	return aead.Seal(nil, nonce, []byte(msg), nil)
+}
 
-// func decryptBytes(cipher []byte) string {
-// 	decrypted, _ := aead.Open(nil, nonce, []byte(cipher), nil)
-// 	return string(decrypted)
-// }
+func decryptBytes(cipher []byte) string {
+	decrypted, _ := aead.Open(nil, nonce, []byte(cipher), nil)
+	return string(decrypted)
+}
