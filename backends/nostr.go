@@ -95,6 +95,9 @@ func (c *NostrClient) Post(clip string) error {
 		CreatedAt: time.Now(),
 		Kind:      4,
 		Content:   encrypted,
+		Tags: nostr.Tags{
+			nostr.Tag{"expiration", fmt.Sprintf("%d", time.Now().Add(10*time.Minute).UTC().Unix())},
+		},
 	}
 	event.Sign(c.Config.Pass)
 	status := c.Relay.Publish(c.Ctx, event)
