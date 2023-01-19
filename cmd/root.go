@@ -25,6 +25,9 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
+	if len(os.Args) == 1 {
+		os.Args = append(os.Args, "sync")
+	}
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
