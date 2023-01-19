@@ -6,89 +6,108 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jhotmann/clipshift/config"
-	"github.com/jhotmann/clipshift/logger"
+	"github.com/jhotmann/clipshift/internal/logger"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
-var (
-	nostrContext       context.Context
-	nostrContextCancel context.CancelFunc
-	nostrRelay         *nostr.Relay
-	nostrSub           *nostr.Subscription
-	nostrSharedSecret  []byte
-)
+type NostrClient struct {
+	Config       BackendConfig
+	Client       string
+	Ctx          context.Context
+	Cancel       context.CancelFunc
+	Relay        *nostr.Relay
+	Subscription *nostr.Subscription
+	SharedSecret []byte
+}
 
-func nostrInit() {
-	var err error
-	nostrSharedSecret, err = nip04.ComputeSharedSecret(config.UserConfig.Pass, config.UserConfig.User)
-	if err != nil {
-		logger.Log.WithError(err).Fatal("Unable to compute shared secret")
+func nostrInitialize(config BackendConfig) *NostrClient {
+	c := NostrClient{
+		Config: config,
+		Client: viper.GetString("client-name"),
 	}
-	logger.Log.WithFields(logrus.Fields{
-		"Host": config.UserConfig.Host,
-		"User": config.UserConfig.User,
-	}).Info("Connecting to nostr relay")
-	nostrContext, nostrContextCancel = context.WithCancel(context.Background())
-	nostrRelay, err = nostr.RelayConnect(nostrContext, config.UserConfig.Host)
+	secret, err := nip04.ComputeSharedSecret(config.Pass, config.User)
 	if err != nil {
-		logger.Log.WithError(err).Fatal("Unable to connect to configured relay")
+		log.WithError(err).Fatal("Unable to compute shared secret")
+		return &c
+	}
+	c.SharedSecret = secret
+	c.Ctx, c.Cancel = context.WithCancel(context.Background())
+	log.WithFields(logrus.Fields{
+		"Host": config.Host,
+		"User": config.User,
+	}).Info("Connecting to nostr relay")
+	c.Relay, err = nostr.RelayConnect(c.Ctx, config.Host)
+	if err != nil {
+		log.WithError(err).Fatal("Unable to connect to configured relay")
 	}
 	filter := nostr.Filter{
 		Kinds:   []int{4},
-		Authors: []string{config.UserConfig.User},
+		Authors: []string{config.User},
 		Limit:   1,
 	}
-	nostrSub = nostrRelay.Subscribe(nostrContext, nostr.Filters{filter})
+	c.Subscription = c.Relay.Subscribe(c.Ctx, nostr.Filters{filter})
 
 	go func() {
-		<-nostrSub.EndOfStoredEvents
-		logger.Log.Debug("EOSE")
+		<-c.Subscription.EndOfStoredEvents
 		// TODO - should I do anything with this?
 	}()
 
-	go nostrHandleMessages()
+	return &c
 }
 
-func nostrHandleMessages() {
-	for ev := range nostrSub.Events {
-		logger.Log.WithField("Event", ev).Debug("Message received")
-		content, err := nip04.Decrypt(ev.Content, nostrSharedSecret)
+func (c *NostrClient) HandleMessages() {
+	if c.Config.Action == SyncActions.Push {
+		return
+	}
+	for ev := range c.Subscription.Events {
+		log.WithField("Event", ev).Debug("Nostr message received")
+		content, err := nip04.Decrypt(ev.Content, c.SharedSecret)
 		if err != nil {
-			logger.Log.WithError(err).Error("Error decrypting contnet")
+			logger.Log.WithError(err).Error("Error decrypting Nostr message contnet")
 			continue
 		}
 		parts := strings.SplitN(content, "---", 2)
 		if len(parts) != 2 {
-			logger.Log.WithField("Content", content).Error("Ignoring message because it is an incorrect format")
+			log.WithField("Content", content).Error("Ignoring Nostr message because it is an incorrect format")
+			continue
+		}
+		if parts[0] == c.Client {
 			continue
 		}
 		ClipReceived(parts[1], parts[0])
 	}
 }
 
-func nostrPostClip(clip string) bool {
-	encrypted, err := nip04.Encrypt(fmt.Sprintf("%s---%s", config.UserConfig.Client, clip), nostrSharedSecret)
+func (c *NostrClient) Post(clip string) error {
+	if c.Config.Action == SyncActions.Pull {
+		return nil
+	}
+	encrypted, err := nip04.Encrypt(fmt.Sprintf("%s---%s", c.Client, clip), c.SharedSecret)
 	if err != nil {
 		logger.Log.WithError(err).Error("Unable to encrypt clipboard")
-		return false
+		return err
 	}
 	event := nostr.Event{
-		PubKey:    config.UserConfig.User,
+		PubKey:    c.Config.User,
 		CreatedAt: time.Now(),
 		Kind:      4,
 		Content:   encrypted,
 	}
-	event.Sign(config.UserConfig.Pass)
-	status := nostrRelay.Publish(nostrContext, event)
-	return status.String() == "success"
+	event.Sign(c.Config.Pass)
+	status := c.Relay.Publish(c.Ctx, event)
+	if status.String() == "failed" {
+		return fmt.Errorf("%s received from relay", status)
+	}
+	log.Debugf("Clipboard sent to nostr relay %s", c.Config.Host)
+	return nil
 }
 
-func nostrStreamClose() {
-	logger.Log.Debug("Closing nostr stream")
-	nostrSub.Unsub()
-	nostrRelay.Close()
-	nostrContextCancel()
+func (c *NostrClient) Close() {
+	log.Debug("Closing nostr stream")
+	c.Cancel()
+	c.Relay.Connection.Close()
+	c.Relay.Close()
 }

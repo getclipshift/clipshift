@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	"github.com/getlantern/systray"
+	"github.com/jhotmann/clipshift/backends"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -56,6 +57,7 @@ func trayOnReady() {
 }
 
 func TrayOnExit() {
+	backends.Close()
 	os.Exit(0)
 }
 

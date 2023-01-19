@@ -1,120 +1,75 @@
 package backends
 
 import (
-	"bufio"
 	"encoding/base64"
-	"encoding/json"
-	"fmt"
-	"strings"
-	"time"
 
-	"github.com/go-resty/resty/v2"
-	"github.com/jhotmann/clipshift/config"
-	"github.com/jhotmann/clipshift/logger"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
+	ntfyClient "heckel.io/ntfy/client"
 )
 
-var (
-	ntfyStream *resty.Response
-	ntfyClient *resty.Client
-)
-
-func ntfyInit() {
-	logger.Log.WithFields(logrus.Fields{
-		"Host":  config.UserConfig.Host,
-		"Topic": config.UserConfig.Topic,
-		"User":  config.UserConfig.User,
-	}).Info("Connecting to ntfy")
-	ntfyClient = resty.New()
-	if config.UserConfig.User != "" && config.UserConfig.Pass != "" {
-		auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", config.UserConfig.User, config.UserConfig.Pass)))
-		ntfyClient.SetHeader("Authorization", fmt.Sprintf("Basic %s", auth))
-	}
-
-	ntfyStreamOpen()
+type NtfyClient struct {
+	Config        BackendConfig
+	ClientName    string
+	Client        *ntfyClient.Client
+	EncryptionKey string
 }
 
-func ntfyStreamOpen() {
-	var err error
-	ntfyStream, err = ntfyClient.R().
-		SetDoNotParseResponse(true).
-		Get(fmt.Sprintf("%s/%s/json", config.UserConfig.Host, config.UserConfig.Topic))
+func ntfyInitialize(config BackendConfig) *NtfyClient {
+	c := NtfyClient{
+		Config:        config,
+		ClientName:    viper.GetString("client-name"),
+		EncryptionKey: config.EncryptionKey,
+	}
+	c.Client = ntfyClient.New(&ntfyClient.Config{
+		DefaultHost: config.Host,
+	})
+	log.WithFields(logrus.Fields{
+		"Host":  config.Host,
+		"User":  config.User,
+		"Topic": config.Topic,
+	}).Info("Connecting to ntfy relay")
+	c.Client.Subscribe(config.Topic, ntfyClient.WithBasicAuth(config.User, config.Pass))
+	return &c
+}
+
+func (c *NtfyClient) HandleMessages() {
+	if c.Config.Action == SyncActions.Push {
+		return
+	}
+	for m := range c.Client.Messages {
+		log.WithFields(logrus.Fields{
+			"Title":   m.Title,
+			"Message": m.Message,
+		}).Debug("Ntfy message received")
+		if m.Title == c.ClientName {
+			continue
+		}
+		if c.EncryptionKey != "" {
+			lastBytes, _ := base64.StdEncoding.DecodeString(m.Message)
+			m.Message = decryptBytes(lastBytes)
+		}
+		ClipReceived(m.Message, m.Title)
+	}
+}
+
+func (c *NtfyClient) Post(clip string) error {
+	if c.Config.Action == SyncActions.Pull {
+		return nil
+	}
+	if c.EncryptionKey != "" {
+		clip = base64.StdEncoding.EncodeToString(encryptString(clip))
+	}
+	_, err := c.Client.Publish(c.Config.Topic, clip, ntfyClient.WithTitle(c.ClientName), ntfyClient.WithBasicAuth(c.Config.User, c.Config.Pass), ntfyClient.WithPriority("1"))
 	if err != nil {
-		if strings.Contains(err.Error(), "no such host") {
-			logger.Log.WithField("Error", err.Error()).Error("Waiting 5 seconds and trying again")
-			time.Sleep(5 * time.Second)
-			ntfyStreamOpen()
-		} else {
-			logger.Log.WithField("Error", err.Error()).Error("Waiting 30 seconds and trying again")
-			time.Sleep(30 * time.Second)
-			ntfyStreamOpen()
-		}
+		log.WithError(err).Errorf("Error sending clipboard to ntfy host %s", c.Config.Host)
+	} else {
+		log.Debugf("Clipboard sent to ntfy host %s", c.Config.Host)
 	}
-	go ntfyHandleMessages()
+	return err
 }
 
-func ntfyHandleMessages() {
-	defer ntfyStreamReconnect()
-	scanner := bufio.NewScanner(ntfyStream.RawResponse.Body)
-	for scanner.Scan() {
-		var parsed NtfyMessage
-		err := json.Unmarshal([]byte(scanner.Text()), &parsed)
-		if err != nil {
-			logger.Log.WithField("Error", err.Error()).Error("Error parsing message")
-		} else if parsed.Event == NtfyEventTypes.Message {
-			ClipReceived(parsed.Message, parsed.Title)
-		} else if parsed.Event == NtfyEventTypes.KeepAlive {
-			logger.Log.Debug("keepalive received")
-		} else if parsed.Event == "" {
-			logger.Log.Error("Unnamed event received, waiting 30 seconds and reconnecting")
-			ntfyStreamClose()
-			time.Sleep(30 * time.Second)
-			ntfyStreamOpen()
-		} else {
-			logger.Log.WithField("Event", parsed.Event).Debug("Response received")
-		}
-	}
-}
-
-func ntfyStreamReconnect() {
-	ntfyStreamClose()
-	ntfyStreamOpen()
-}
-
-func ntfyStreamClose() {
-	logger.Log.Debug("Closing stream")
-	ntfyClient.GetClient().CloseIdleConnections()
-}
-
-func ntfyPostClip(clip string) bool {
-	resp, err := ntfyClient.R().
-		SetHeader("Title", config.UserConfig.Client).
-		SetHeader("Priority", "1").
-		SetBody(clip).
-		Post(fmt.Sprintf("%s/%s", config.UserConfig.Host, config.UserConfig.Topic))
-	if err == nil && resp.StatusCode() == 200 {
-		return true
-	}
-	return false
-}
-
-type NtfyMessage struct {
-	Id      string `json:"id"`
-	Time    int    `json:"time"`
-	Event   string `json:"event"`
-	Topic   string `json:"topic"`
-	Message string `json:"message"`
-	Title   string `json:"title"`
-}
-
-var NtfyEventTypes = struct {
-	Open        string
-	KeepAlive   string
-	Message     string
-	PollRequest string
-}{
-	Open:        "open",
-	KeepAlive:   "keepalive",
-	Message:     "message",
-	PollRequest: "poll_request",
+func (c *NtfyClient) Close() {
+	log.Debug("Closing ntfy subscription")
+	c.Client.UnsubscribeAll(c.Config.Topic)
 }

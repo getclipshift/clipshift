@@ -2,89 +2,78 @@ package backends
 
 import (
 	"crypto/cipher"
-	"crypto/sha256"
-	"encoding/base64"
-	"fmt"
-	"time"
 
-	"github.com/jhotmann/clipshift/config"
-	"github.com/jhotmann/clipshift/logger"
-	"github.com/jhotmann/clipshift/ui"
+	"github.com/jhotmann/clipshift/internal/logger"
 	"github.com/sirupsen/logrus"
 	"golang.design/x/clipboard"
-	"golang.org/x/crypto/chacha20poly1305"
 )
 
 var (
-	LastReceived      string
-	configuredBackend string
-	encryptionEnabled bool
-	encryptionkey     [32]byte
-	nonce             []byte
-	aead              cipher.AEAD
+	log          = logger.Log
+	LastReceived string
+	nonce        []byte
+	aead         cipher.AEAD
+
+	clients     []BackendClient
+	SyncActions = struct {
+		Push string
+		Pull string
+		Sync string
+	}{
+		Push: "push",
+		Pull: "pull",
+		Sync: "sync",
+	}
 )
 
-func BackendInit() {
-	configuredBackend = config.UserConfig.Backend
+type BackendConfig struct {
+	Type          string `yaml:"type"`
+	Host          string `yaml:"host"`
+	User          string `yaml:"user"`
+	Pass          string `yaml:"pass"`
+	Topic         string `yaml:"topic"`
+	EncryptionKey string `yaml:"encryptionkey"`
+	Action        string `yaml:"action"`
+}
 
-	switch configuredBackend {
-	case "ntfy":
-		ntfyInit()
+type BackendClient interface {
+	HandleMessages()
+	Post(string) error
+	Close()
+}
+
+func New(config BackendConfig) BackendClient {
+	var client BackendClient
+	switch config.Type {
 	case "nostr":
-		nostrInit()
-	default:
-		logger.Log.Fatalf("Invalid backend '%s'", configuredBackend)
+		client = nostrInitialize(config)
+	case "ntfy":
+		client = ntfyInitialize(config)
 	}
-
-	encryptionEnabled = config.UserConfig.EncryptionKey != ""
-	if encryptionEnabled {
-		encryptionkey = sha256.Sum256([]byte(config.UserConfig.EncryptionKey))
-		nonce = make([]byte, chacha20poly1305.NonceSizeX)
-		aead, _ = chacha20poly1305.NewX(encryptionkey[:])
-	}
+	clients = append(clients, client)
+	return client
 }
 
 func Close() {
-	switch configuredBackend {
-	case "ntfy":
-		ntfyStreamClose()
-	case "nostr":
-		nostrStreamClose()
+	for _, c := range clients {
+		c.Close()
 	}
 }
 
 func PostClip(clip string) {
-	if encryptionEnabled {
-		old := clip
-		clip = base64.StdEncoding.EncodeToString(encryptString(clip))
-		logger.Log.WithFields(logrus.Fields{
-			"Old": old,
-			"New": clip,
-		}).Info("Encrypted clip")
-	}
-
-	switch configuredBackend {
-	case "ntfy":
-		ntfyPostClip(clip)
-	case "nostr":
-		nostrPostClip(clip)
+	for _, c := range clients {
+		c.Post(clip)
 	}
 }
 
 func ClipReceived(clip string, client string) {
-	if encryptionEnabled {
-		lastBytes, _ := base64.StdEncoding.DecodeString(clip)
-		clip = decryptBytes(lastBytes)
-	}
-
-	if client == config.UserConfig.Client || clip == LastReceived {
+	if clip == LastReceived {
 		return
 	}
 	LastReceived = clip
 
 	clipboard.Write(clipboard.FmtText, []byte(LastReceived))
-	ui.TraySetTooltip(fmt.Sprintf("%s - %s", time.Now().Format("20060102 15:04:05"), client))
-	logger.Log.WithFields(logrus.Fields{
+	log.WithFields(logrus.Fields{
 		"Client":  client,
 		"Content": LastReceived,
 	}).Debug("Clipboard received")
