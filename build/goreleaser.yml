@@ -12,8 +12,11 @@ builds:
       - arm64
     env:
       - CGO_enabled=1
+      - CC=o64-clang
+      - CCX=o64-clang++
   - id: linux
     binary: clipshift
+    main: main.go
     goos:
       - linux
     goarch:
@@ -21,8 +24,21 @@ builds:
       - arm64
     env:
       - CGO_enabled=1
+      - CC=x86_64-linux-gnu-gcc
+      - CCX=x86_64-linux-gnu-g++
+    overrides:
+      - goos: linux
+        goarch: arm64
+        env:
+          - CC=aarch64-linux-gnu-gcc
+          - CCX=aarch64-linux-gnu-g++
+      - goos: linux
+        goarch: amd64
+        goamd64: v1
+        env:
+          - PKG_CONFIG_SYSROOT_DIR=/sysroot/linux/amd64
   - id: windows
-    binary: clipshift.exe
+    binary: clipshift
     goos:
       - windows
     goarch:

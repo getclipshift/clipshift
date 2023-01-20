@@ -1,0 +1,21 @@
+name: Build
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Compose
+        run: |
+          curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+      - name: Build the Docker image
+        run: docker-compose -f build/docker-compose.yaml build builder
+      - name: Build binaries
+        run: docker-compose -f build/docker-compose.yaml run --rm builer
