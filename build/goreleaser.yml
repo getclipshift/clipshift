@@ -35,8 +35,6 @@ builds:
       - goos: linux
         goarch: amd64
         goamd64: v1
-        env:
-          - PKG_CONFIG_SYSROOT_DIR=/sysroot/linux/amd64
   - id: windows
     binary: clipshift
     goos:
