@@ -38,4 +38,4 @@ jobs:
       - name: Build the Docker image
         run: docker-compose -f build/docker-compose.yaml build builder
       - name: Build Linux ARM64
-        run:docker-compose -f build/docker-compose.yaml run --rm builder build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
+        run: docker-compose -f build/docker-compose.yaml run --rm builder build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
