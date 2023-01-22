@@ -18,4 +18,4 @@ jobs:
       - name: Build the Docker image
         run: docker-compose -f build/docker-compose.yaml build builder
       - name: Build binaries
-        run: docker-compose -f build/docker-compose.yaml run --rm builder
+        run: docker-compose -f build/docker-compose.yaml run --rm builder build -f build/goreleaser.yml --rm-dist --snapshot --id linux --id windows
