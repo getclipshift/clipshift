@@ -3,12 +3,19 @@ before:
     - go mod tidy
     - go generate ./...
 builds:
-  - id: darwin
+  - id: darwin-amd
     binary: clipshift
     goos:
       - darwin
     goarch:
       - amd64
+    env:
+      - CGO_enabled=1
+  - id: darwin-arm
+    binary: clipshift
+    goos:
+      - darwin
+    goarch:
       - arm64
     env:
       - CGO_enabled=1

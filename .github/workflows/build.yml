@@ -67,4 +67,4 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: build -f build/goreleaser.yml --rm-dist --snapshot --id darwin
+          args: build -f build/goreleaser.yml --rm-dist --snapshot --id darwin-amd
