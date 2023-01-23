@@ -45,7 +45,7 @@ jobs:
         with:
           arch: aarch64
           distro: none
-          base_image: goreleaser/goreleaser-cross:v1.19
+          base_image: golang:1.19
           run: |
               apt-get update && apt-get install -y gcc libgtk-3-dev libayatana-appindicator3-dev wget
               # golang
@@ -53,5 +53,5 @@ jobs:
               # sudo tar -C /usr/local -xzf go1.19.5.linux-arm64.tar.gz
               # export PATH=$PATH:/usr/local/go/bin
               # goreleaser
-              # go install github.com/goreleaser/goreleaser@latest
+              go install github.com/goreleaser/goreleaser@latest
               goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
