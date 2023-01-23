@@ -52,6 +52,7 @@ jobs:
               tar -C /usr/local -xzf go1.19.5.linux-arm64.tar.gz
               export PATH=$PATH:/usr/local/go/bin
               # goreleaser
-              go install github.com/goreleaser/goreleaser@latest
-              ls -lAh /usr/local/go/bin
-              /usr/local/go/bin/goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
+              # curl -sfL https://goreleaser.com/static/run | bash
+              # go install github.com/goreleaser/goreleaser@latest
+              # ls -lAh /usr/local/go/bin
+              curl -sfL https://goreleaser.com/static/run | bash build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
