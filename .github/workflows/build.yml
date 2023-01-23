@@ -53,4 +53,5 @@ jobs:
               export PATH=$PATH:/usr/local/go/bin
               # goreleaser
               go install github.com/goreleaser/goreleaser@latest
-              goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
+              ls -lAh /usr/local/go/bin
+              /usr/local/go/bin/goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
