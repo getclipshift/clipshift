@@ -12,14 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      # - name: Install Compose
-      #   run: |
-      #     curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-      #     sudo chmod +x /usr/local/bin/docker-compose
-      # - name: Build the Docker image
-      #   run: docker-compose -f build/docker-compose.yaml build builder
-      # - name: Build binaries
-      #   run: docker-compose -f build/docker-compose.yaml run --rm builder build -f build/goreleaser.yml --rm-dist --snapshot --id linux --id windows
       - name: Install Dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev
@@ -48,14 +40,11 @@ jobs:
           run: |
               apt-get update && apt-get install -y gcc libgtk-3-dev libayatana-appindicator3-dev curl git
               # golang
+              echo "Downloading and Installing Go"
               curl -Lo go.tar.gz https://go.dev/dl/go1.19.5.linux-arm64.tar.gz
               tar -C /usr/local -xzf go.tar.gz
               export PATH=$PATH:/usr/local/go/bin
               # goreleaser
-              # curl -sfL https://goreleaser.com/static/run | bash
-              # go install github.com/goreleaser/goreleaser@latest
-              # ls -lAh /usr/local/go/bin
-              # curl -sfL https://goreleaser.com/static/run | bash -s -- build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
               LATEST="$(curl -sf https://goreleaser.com/static/latest)"
               echo "Downloading Goreleaser: https://github.com/goreleaser/goreleaser/releases/download/$LATEST/goreleaser_Linux_arm64.tar.gz"
               curl -sfLo goreleaser.tar.gz "https://github.com/goreleaser/goreleaser/releases/download/$LATEST/goreleaser_Linux_arm64.tar.gz"
@@ -63,3 +52,19 @@ jobs:
               tar -xf goreleaser.tar.gz -C /usr/local/bin
               echo "Building"
               /usr/local/bin/goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
+
+  build3:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.19'
+      - name: Build MacOS
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: build -f build/goreleaser.yml --rm-dist --snapshot --id darwin
