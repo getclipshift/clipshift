@@ -55,4 +55,4 @@ jobs:
               # curl -sfL https://goreleaser.com/static/run | bash
               # go install github.com/goreleaser/goreleaser@latest
               # ls -lAh /usr/local/go/bin
-              curl -sfL https://goreleaser.com/static/run | bash build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
+              curl -sfL https://goreleaser.com/static/run | bash -s -- build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
