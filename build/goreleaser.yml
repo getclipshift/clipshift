@@ -34,8 +34,8 @@ builds:
       - arm64
     env:
       - CGO_enabled=1
-      # - CC=aarch64-linux-gnu-gcc
-      # - CCX=aarch64-linux-gnu-g++
+      - CC=aarch64-linux-gnu-gcc
+      - CCX=aarch64-linux-gnu-g++
   - id: windows
     binary: clipshift
     goos:
