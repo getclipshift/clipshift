@@ -57,6 +57,9 @@ jobs:
               # ls -lAh /usr/local/go/bin
               # curl -sfL https://goreleaser.com/static/run | bash -s -- build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
               LATEST="$(curl -sf https://goreleaser.com/static/latest)"
+              echo "Downloading Goreleaser: https://github.com/goreleaser/goreleaser/releases/download/$LATEST/goreleaser_$(uname -s)_$(uname -m).tar.gz"
               curl -sfLo goreleaser.tar.gz "https://github.com/goreleaser/goreleaser/releases/download/$LATEST/goreleaser_$(uname -s)_$(uname -m).tar.gz"
+              echo "Extracting Goreleaser"
               tar -xf goreleaser.tar.gz -C /usr/local/bin
+              echo "Building"
               /usr/local/bin/goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
