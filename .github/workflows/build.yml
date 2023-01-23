@@ -25,6 +25,13 @@ jobs:
           distribution: goreleaser
           version: latest
           args: build -f build/goreleaser.yml --rm-dist --snapshot --id linux-amd --id windows
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build1-artifacts
+          path: |
+            dist/**/clipshift
+            dist/**/clipshift.exe
 
   build2:
     runs-on: ubuntu-latest
@@ -52,6 +59,11 @@ jobs:
               tar -xf goreleaser.tar.gz -C /usr/local/bin
               echo "Building"
               /usr/local/bin/goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build2-artifacts
+          path: dist/**/clipshift
 
   build3:
     runs-on: macos-latest
@@ -68,3 +80,8 @@ jobs:
           distribution: goreleaser
           version: latest
           args: build -f build/goreleaser.yml --rm-dist --snapshot --id darwin-amd
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build3-artifacts
+          path: dist/**/clipshift
