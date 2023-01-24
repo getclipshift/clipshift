@@ -43,9 +43,9 @@ require (
 	golang.org/x/exp/shiny v0.0.0-20230116083435-1de6713980de // indirect
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
 	golang.org/x/mobile v0.0.0-20210716004757-34ab1303b554 // indirect
-	golang.org/x/sys v0.3.0 // indirect
-	golang.org/x/term v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/term v0.4.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -58,6 +58,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
 	golang.design/x/clipboard v0.6.2
-	golang.org/x/net v0.4.0 // indirect
+	golang.org/x/crypto v0.5.0
+	golang.org/x/net v0.5.0 // indirect
 	heckel.io/ntfy v1.30.1
 )

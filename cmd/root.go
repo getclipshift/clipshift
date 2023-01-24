@@ -49,8 +49,9 @@ type LogConfig struct {
 }
 
 type Config struct {
-	Logging  LogConfig                `yaml:"logging"`
-	Backends []backends.BackendConfig `yaml:"backends"`
+	ClientName string                   `yaml:"client-name"`
+	Logging    LogConfig                `yaml:"logging"`
+	Backends   []backends.BackendConfig `yaml:"backends"`
 }
 
 func initConfig() {
