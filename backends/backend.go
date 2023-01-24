@@ -1,8 +1,6 @@
 package backends
 
 import (
-	"crypto/cipher"
-
 	"github.com/jhotmann/clipshift/internal/logger"
 	"github.com/sirupsen/logrus"
 	"golang.design/x/clipboard"
@@ -11,8 +9,6 @@ import (
 var (
 	log          = logger.Log
 	LastReceived string
-	nonce        []byte
-	aead         cipher.AEAD
 
 	clients     []BackendClient
 	SyncActions = struct {
@@ -77,13 +73,4 @@ func ClipReceived(clip string, client string) {
 		"Client":  client,
 		"Content": LastReceived,
 	}).Debug("Clipboard received")
-}
-
-func encryptString(msg string) []byte {
-	return aead.Seal(nil, nonce, []byte(msg), nil)
-}
-
-func decryptBytes(cipher []byte) string {
-	decrypted, _ := aead.Open(nil, nonce, []byte(cipher), nil)
-	return string(decrypted)
 }

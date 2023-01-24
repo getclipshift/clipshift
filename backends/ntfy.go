@@ -1,8 +1,7 @@
 package backends
 
 import (
-	"encoding/base64"
-
+	"github.com/jhotmann/clipshift/internal/aes"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	ntfyClient "heckel.io/ntfy/client"
@@ -12,14 +11,17 @@ type NtfyClient struct {
 	Config        BackendConfig
 	ClientName    string
 	Client        *ntfyClient.Client
-	EncryptionKey string
+	EncryptionKey []byte
+	BaseOptions   []ntfyClient.PublishOption
 }
 
 func ntfyInitialize(config BackendConfig) *NtfyClient {
 	c := NtfyClient{
-		Config:        config,
-		ClientName:    viper.GetString("client-name"),
-		EncryptionKey: config.EncryptionKey,
+		Config:     config,
+		ClientName: viper.GetString("client-name"),
+	}
+	if config.EncryptionKey != "" {
+		c.EncryptionKey = aes.GetKey(config.EncryptionKey)
 	}
 	c.Client = ntfyClient.New(&ntfyClient.Config{
 		DefaultHost: config.Host,
@@ -29,7 +31,10 @@ func ntfyInitialize(config BackendConfig) *NtfyClient {
 		"User":  config.User,
 		"Topic": config.Topic,
 	}).Info("Connecting to ntfy relay")
-	c.Client.Subscribe(config.Topic, ntfyClient.WithBasicAuth(config.User, config.Pass))
+	if config.User != "" && config.Pass != "" {
+		c.BaseOptions = []ntfyClient.PublishOption{ntfyClient.WithBasicAuth(config.User, config.Pass)}
+	}
+	c.Client.Subscribe(config.Topic, c.BaseOptions...)
 	return &c
 }
 
@@ -45,9 +50,13 @@ func (c *NtfyClient) HandleMessages() {
 		if m.Title == c.ClientName {
 			continue
 		}
-		if c.EncryptionKey != "" {
-			lastBytes, _ := base64.StdEncoding.DecodeString(m.Message)
-			m.Message = decryptBytes(lastBytes)
+		if c.EncryptionKey != nil {
+			var err error
+			m.Message, err = aes.Decrypt(c.EncryptionKey, m.Message)
+			if err != nil {
+				log.WithError(err).Error("Error decrypting clipboard")
+				return
+			}
 		}
 		ClipReceived(m.Message, m.Title)
 	}
@@ -57,10 +66,16 @@ func (c *NtfyClient) Post(clip string) error {
 	if c.Config.Action == SyncActions.Pull {
 		return nil
 	}
-	if c.EncryptionKey != "" {
-		clip = base64.StdEncoding.EncodeToString(encryptString(clip))
+	if c.EncryptionKey != nil {
+		var err error
+		clip, err = aes.Encrypt(c.EncryptionKey, clip)
+		if err != nil {
+			log.WithError(err).Error("Error encrypting clipboard")
+			return err
+		}
 	}
-	_, err := c.Client.Publish(c.Config.Topic, clip, ntfyClient.WithTitle(c.ClientName), ntfyClient.WithBasicAuth(c.Config.User, c.Config.Pass), ntfyClient.WithPriority("1"))
+	opts := append(c.BaseOptions, ntfyClient.WithTitle(c.ClientName), ntfyClient.WithPriority("1"))
+	_, err := c.Client.Publish(c.Config.Topic, clip, opts...)
 	if err != nil {
 		log.WithError(err).Errorf("Error sending clipboard to ntfy host %s", c.Config.Host)
 	} else {

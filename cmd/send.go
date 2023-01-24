@@ -23,7 +23,7 @@ var sendCmd = &cobra.Command{
 	Short: "Send clipboard to one or more backends",
 	Long:  `Send clipboard to one or more backends`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// errorZeroBackends()
+		errorZeroBackends()
 		log.WithFields(logrus.Fields{
 			"Loglevel": config.Logging.Level,
 			"Logout":   config.Logging.Destination,
