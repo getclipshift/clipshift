@@ -72,7 +72,12 @@ func macSetLaunchAtStartup(enabled bool) {
 	var out bytes.Buffer
 	tpl.Execute(&out, data)
 	pListFile, _ := homedir.Expand(macPlistPath)
-	os.WriteFile(pListFile, out.Bytes(), 0655)
+	err := os.WriteFile(pListFile, out.Bytes(), 0655)
+	if err != nil {
+		logger.Log.WithError(err).Error("Error setting startup status")
+		return
+	}
+	logger.Log.WithField("enabled", enabled).Info("Startup status set")
 }
 
 func fileExists(filename string) bool {

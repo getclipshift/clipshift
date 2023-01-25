@@ -1,3 +1,5 @@
+//go:build tray
+
 package ui
 
 import (
@@ -7,12 +9,6 @@ import (
 
 	"github.com/getlantern/systray"
 	"github.com/jhotmann/clipshift/backends"
-	"github.com/mitchellh/go-homedir"
-)
-
-var (
-	macPlistPath string
-	startup      bool
 )
 
 //go:embed clipboard.png
@@ -21,9 +17,11 @@ var iconPng []byte
 //go:embed clipboard.ico
 var iconIco []byte
 
-func TrayInit() {
-	macPlistPath, _ = homedir.Expand("~/Library/LaunchAgents/io.github.clipshift.plist")
-	startup = getLaunchAtStartup()
+func init() {
+	trayEnabled = true
+}
+
+func trayRun() {
 	systray.Run(trayOnReady, TrayOnExit)
 }
 
@@ -45,14 +43,16 @@ func trayOnReady() {
 	}()
 
 	go func() {
-		<-mStartup.ClickedCh
-		startup = !startup
-		if startup {
-			mStartup.Check()
-		} else {
-			mStartup.Uncheck()
+		for {
+			<-mStartup.ClickedCh
+			startup = !startup
+			if startup {
+				mStartup.Check()
+			} else {
+				mStartup.Uncheck()
+			}
+			setLaunchAtStartup(startup)
 		}
-		setLaunchAtStartup(startup)
 	}()
 }
 

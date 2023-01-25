@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 
 	"github.com/jhotmann/clipshift/backends"
@@ -34,7 +35,10 @@ var syncCmd = &cobra.Command{
 
 		// Initialize clients
 		for _, b := range config.Backends {
-			clients = append(clients, backends.New(b))
+			c := backends.New(b)
+			if c != nil {
+				clients = append(clients, c)
+			}
 		}
 		// Handle messages
 		for _, client := range clients {
@@ -47,6 +51,7 @@ var syncCmd = &cobra.Command{
 		interrupt = make(chan os.Signal, 1)
 		signal.Notify(interrupt, os.Interrupt)
 		go handleInterrupt()
+		runtime.Goexit()
 	},
 }
 
@@ -54,6 +59,6 @@ func handleInterrupt() {
 	for i := range interrupt {
 		log.Info("Interrupt received: ", i.String())
 		backends.Close()
-		ui.TrayOnExit()
+		os.Exit(0)
 	}
 }
