@@ -106,8 +106,12 @@ jobs:
           distribution: goreleaser
           version: latest
           args: build -f build/goreleaser.yml --rm-dist --snapshot --id darwin-amd-tray
-      - name: Upload Artifact
+      - name: Create App Bundle
+        run: ./build/macpackage.sh "darwin-amd-tray_darwin_amd64_v1" "clipshift-amd64.app"
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: mac-tray-artifacts
-          path: dist/**/clipshift
+          path: |
+            dist/**/clipshift
+            dist/clipshift*.app
