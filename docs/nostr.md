@@ -8,11 +8,11 @@ In order to avoid taxing public relays, I suggest running a private relay. [Nost
 
 ## clipshift config
 
-    ```yaml
-    backends:
-      - type: nostr
-        host: wss://nostr-relay.example.com
-        user: hex-public-key # technically you don't even need this
-        pass: hex-private-key
-        action: sync
-    ```
+```yaml
+backends:
+  - type: nostr
+    host: wss://nostr-relay.example.com
+    user: hex-public-key # technically you don't even need this
+    pass: hex-private-key
+    action: sync
+```
