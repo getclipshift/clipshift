@@ -2,7 +2,10 @@ package ui
 
 import (
 	"bytes"
+	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"text/template"
@@ -15,6 +18,8 @@ func getLaunchAtStartup() bool {
 	switch runtime.GOOS {
 	case "darwin":
 		return macGetLaunchAtStartup()
+	case "windows":
+		return fileExists(winLnkPath)
 	default:
 		return false
 	}
@@ -38,6 +43,8 @@ func setLaunchAtStartup(enabled bool) {
 	switch runtime.GOOS {
 	case "darwin":
 		macSetLaunchAtStartup(enabled)
+	case "windows":
+		winSetLaunchAtStartup(enabled)
 	}
 }
 
@@ -78,6 +85,20 @@ func macSetLaunchAtStartup(enabled bool) {
 		return
 	}
 	logger.Log.WithField("enabled", enabled).Info("Startup status set")
+}
+
+func winSetLaunchAtStartup(enabled bool) {
+	if enabled {
+		exePath, _ := os.Executable()
+		exeDir := filepath.Dir(exePath)
+		lnkAbs, _ := filepath.Abs(winLnkPath)
+		_, err := exec.Command("powershell", "-nologo", "-noprofile", fmt.Sprintf("$s=(New-Object -COM WScript.Shell).CreateShortcut('%s');$s.TargetPath='cmd.exe';$s.Arguments='/c \"start clipshift.exe\"';$s.WorkingDirectory='%s';$s.Save()", lnkAbs, exeDir)).CombinedOutput()
+		if err != nil {
+			logger.Log.WithError(err).Error("Error creating startup link")
+		}
+	} else {
+		os.Remove(winLnkPath)
+	}
 }
 
 func fileExists(filename string) bool {
