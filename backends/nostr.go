@@ -24,6 +24,12 @@ type NostrClient struct {
 }
 
 func nostrInitialize(config BackendConfig) *NostrClient {
+	var err error
+	if config.Pass != "" && config.User == "" {
+		config.User, err = nostr.GetPublicKey(config.Pass)
+		log.WithError(err).Error("Invalid password configured")
+		return nil
+	}
 	c := NostrClient{
 		Config: config,
 		Client: viper.GetString("client-name"),

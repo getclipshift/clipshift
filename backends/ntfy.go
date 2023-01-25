@@ -1,6 +1,7 @@
 package backends
 
 import (
+	"github.com/golang-module/dongle"
 	"github.com/jhotmann/clipshift/internal/aes"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -8,11 +9,11 @@ import (
 )
 
 type NtfyClient struct {
-	Config        BackendConfig
-	ClientName    string
-	Client        *ntfyClient.Client
-	EncryptionKey []byte
-	BaseOptions   []ntfyClient.PublishOption
+	Config      BackendConfig
+	ClientName  string
+	Client      *ntfyClient.Client
+	Cipher      *dongle.Cipher
+	BaseOptions []ntfyClient.PublishOption
 }
 
 func ntfyInitialize(config BackendConfig) *NtfyClient {
@@ -21,7 +22,7 @@ func ntfyInitialize(config BackendConfig) *NtfyClient {
 		ClientName: viper.GetString("client-name"),
 	}
 	if config.EncryptionKey != "" {
-		c.EncryptionKey = aes.GetKey(config.EncryptionKey)
+		c.Cipher = aes.GetCypher(config.EncryptionKey)
 	}
 	c.Client = ntfyClient.New(&ntfyClient.Config{
 		DefaultHost: config.Host,
@@ -50,13 +51,8 @@ func (c *NtfyClient) HandleMessages() {
 		if m.Title == c.ClientName {
 			continue
 		}
-		if c.EncryptionKey != nil {
-			var err error
-			m.Message, err = aes.Decrypt(c.EncryptionKey, m.Message)
-			if err != nil {
-				log.WithError(err).Error("Error decrypting clipboard")
-				return
-			}
+		if c.Cipher != nil {
+			m.Message = aes.Decrypt(c.Cipher, m.Message)
 		}
 		ClipReceived(m.Message, m.Title)
 	}
@@ -66,13 +62,8 @@ func (c *NtfyClient) Post(clip string) error {
 	if c.Config.Action == SyncActions.Pull {
 		return nil
 	}
-	if c.EncryptionKey != nil {
-		var err error
-		clip, err = aes.Encrypt(c.EncryptionKey, clip)
-		if err != nil {
-			log.WithError(err).Error("Error encrypting clipboard")
-			return err
-		}
+	if c.Cipher != nil {
+		clip = aes.Encrypt(c.Cipher, clip)
 	}
 	opts := append(c.BaseOptions, ntfyClient.WithTitle(c.ClientName), ntfyClient.WithPriority("1"))
 	_, err := c.Client.Publish(c.Config.Topic, clip, opts...)

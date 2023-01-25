@@ -7,65 +7,90 @@ on:
     branches: [ 'main' ]
 
 jobs:
-  build1:
+  main_build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev
+          sudo apt-get update && sudo apt-get install -y libx11-dev
       - name: Install Go
         uses: actions/setup-go@v3
         with:
           go-version: '^1.19'
-      - name: Build Linux AMD64 and Windows
+      - name: Build tray-less all platforms, Windows w/ tray
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
           version: latest
-          args: build -f build/goreleaser.yml --rm-dist --snapshot --id linux-amd --id windows
-      - name: Upload Artifact
+          args: build -f build/goreleaser.yml --rm-dist --snapshot --id default --id windows-tray
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: build1-artifacts
+          name: main-artifacts
           path: |
             dist/**/clipshift
             dist/**/clipshift.exe
+  # build1:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Install Dependencies
+  #       run: |
+  #         sudo apt-get update && sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev
+  #     - name: Install Go
+  #       uses: actions/setup-go@v3
+  #       with:
+  #         go-version: '^1.19'
+  #     - name: Build Linux AMD64 and Windows
+  #       uses: goreleaser/goreleaser-action@v4
+  #       with:
+  #         distribution: goreleaser
+  #         version: latest
+  #         args: build -f build/goreleaser.yml --rm-dist --snapshot --id linux-amd --id windows
+  #     - name: Upload Artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: build1-artifacts
+  #         path: |
+  #           dist/**/clipshift
+  #           dist/**/clipshift.exe
 
-  build2:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Build in VM
-        uses: uraimo/run-on-arch-action@v2
-        id: build
-        with:
-          arch: aarch64
-          distro: bullseye
-          run: |
-              apt-get update && apt-get install -y gcc libgtk-3-dev libayatana-appindicator3-dev curl git
-              # golang
-              echo "Downloading and Installing Go"
-              curl -Lo go.tar.gz https://go.dev/dl/go1.19.5.linux-arm64.tar.gz
-              tar -C /usr/local -xzf go.tar.gz
-              export PATH=$PATH:/usr/local/go/bin
-              # goreleaser
-              LATEST="$(curl -sf https://goreleaser.com/static/latest)"
-              echo "Downloading Goreleaser: https://github.com/goreleaser/goreleaser/releases/download/$LATEST/goreleaser_Linux_arm64.tar.gz"
-              curl -sfLo goreleaser.tar.gz "https://github.com/goreleaser/goreleaser/releases/download/$LATEST/goreleaser_Linux_arm64.tar.gz"
-              echo "Extracting Goreleaser"
-              tar -xf goreleaser.tar.gz -C /usr/local/bin
-              echo "Building"
-              /usr/local/bin/goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: build2-artifacts
-          path: dist/**/clipshift
+  # build2:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Build in VM
+  #       uses: uraimo/run-on-arch-action@v2
+  #       id: build
+  #       with:
+  #         arch: aarch64
+  #         distro: bullseye
+  #         run: |
+  #             apt-get update && apt-get install -y gcc libgtk-3-dev libayatana-appindicator3-dev curl git
+  #             # golang
+  #             echo "Downloading and Installing Go"
+  #             curl -Lo go.tar.gz https://go.dev/dl/go1.19.5.linux-arm64.tar.gz
+  #             tar -C /usr/local -xzf go.tar.gz
+  #             export PATH=$PATH:/usr/local/go/bin
+  #             # goreleaser
+  #             LATEST="$(curl -sf https://goreleaser.com/static/latest)"
+  #             echo "Downloading Goreleaser: https://github.com/goreleaser/goreleaser/releases/download/$LATEST/goreleaser_Linux_arm64.tar.gz"
+  #             curl -sfLo goreleaser.tar.gz "https://github.com/goreleaser/goreleaser/releases/download/$LATEST/goreleaser_Linux_arm64.tar.gz"
+  #             echo "Extracting Goreleaser"
+  #             tar -xf goreleaser.tar.gz -C /usr/local/bin
+  #             echo "Building"
+  #             /usr/local/bin/goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
+  #     - name: Upload Artifact
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: build2-artifacts
+  #         path: dist/**/clipshift
 
-  build3:
+  mac_tray:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -79,9 +104,9 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: build -f build/goreleaser.yml --rm-dist --snapshot --id darwin-amd
+          args: build -f build/goreleaser.yml --rm-dist --snapshot --id darwin-amd-tray
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: build3-artifacts
+          name: mac-tray-artifacts
           path: dist/**/clipshift

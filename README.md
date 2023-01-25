@@ -12,16 +12,16 @@ Prerequisites:
 
 # Usage
 
-TODO
+TODO - run `clipshift --help` for now
 
 # Backends
 
 ## [ntfy.sh](https://ntfy.sh) (recommended)
-Currently the best option to use as a backend. There is a free public instance available or the server can be self-hosted really easily. The Android client also works well alongside Tasker to allow your Android devices to sync their clipboard with the rest of your devices.
+A push notification service. Currently the best option to use as a backend.
 
 [ntfy docs](docs/ntfy.md)
 
 ## [nostr](https://github.com/nostr-protocol/nostr) (advanced)
-In order to keep strain on public relays down, I can only recommend this backend if you are willing to run your own relay. [Nostream](https://github.com/Cameri/nostream) is a great option.
+A flexible protocol using websockets with encrypted direct message support.
 
-[nostr docs](todo)
+[nostr docs](docs/nostr.md)

@@ -37,10 +37,16 @@ var sendCmd = &cobra.Command{
 		}
 		if specifiedBackend == 0 {
 			for _, b := range config.Backends {
-				clients = append(clients, backends.New(b))
+				c := backends.New(b)
+				if c != nil {
+					clients = append(clients, c)
+				}
 			}
 		} else {
-			clients = append(clients, backends.New(config.Backends[specifiedBackend-1]))
+			c := backends.New(config.Backends[specifiedBackend-1])
+			if c != nil {
+				clients = append(clients, c)
+			}
 		}
 
 		for _, c := range clients {
