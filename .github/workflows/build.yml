@@ -32,6 +32,7 @@ jobs:
           path: |
             dist/**/clipshift
             dist/**/clipshift.exe
+            dist/**/clipshift-tray.exe
   # build1:
   #   runs-on: ubuntu-latest
   #   steps:

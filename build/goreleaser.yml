@@ -57,9 +57,11 @@ builds:
   #     - CC=aarch64-linux-gnu-gcc
   #     - CCX=aarch64-linux-gnu-g++
   - id: windows-tray
-    binary: clipshift
+    binary: clipshift-tray
     tags:
       - tray
+    ldflags:
+      - -H=windowsgui
     goos:
       - windows
     goarch:
