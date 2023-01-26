@@ -20,14 +20,15 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
-        files:
-          - qwertyasdf*
+    files:
+      - qwertyasdf*
+    rlcp: true
 checksum:
   name_template: "{{ .Version }}_checksums.txt"
 release:
   github:
     owner: jhotmann
-    repo: clipshift
+    name: clipshift
   draft: false
   discussion_category_name: General
   prerelease: auto
