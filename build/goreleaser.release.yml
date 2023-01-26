@@ -1,0 +1,33 @@
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+builds:
+  - binary: clipshift
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_enabled=1
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+        files:
+          - qwertyasdf*
+checksum:
+  name_template: "{{ .Version }}_checksums.txt"
+release:
+  github:
+    owner: jhotmann
+    repo: clipshift
+  draft: false
+  discussion_category_name: General
+  prerelease: auto
