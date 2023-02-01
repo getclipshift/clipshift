@@ -45,7 +45,7 @@ type LogConfig struct {
 }
 
 type Config struct {
-	ClientName string                   `yaml:"client-name"`
+	ClientName string                   `yaml:"client-name,omitempty"`
 	Logging    LogConfig                `yaml:"logging"`
 	Backends   []backends.BackendConfig `yaml:"backends"`
 }

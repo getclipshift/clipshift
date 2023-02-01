@@ -65,7 +65,7 @@ func nostrInitialize(config BackendConfig) *NostrClient {
 }
 
 func (c *NostrClient) HandleMessages() {
-	if c.Config.Action == SyncActions.Push {
+	if c.Config.Action == SyncActions.Push || c.Config.Action == SyncActions.Manual {
 		return
 	}
 	for ev := range c.Subscription.Events {
@@ -88,7 +88,7 @@ func (c *NostrClient) HandleMessages() {
 }
 
 func (c *NostrClient) Post(clip string) error {
-	if c.Config.Action == SyncActions.Pull {
+	if c.Config.Action == SyncActions.Pull || c.Config.Action == SyncActions.Manual {
 		return nil
 	}
 	encrypted, err := nip04.Encrypt(fmt.Sprintf("%s---%s", c.Client, clip), c.SharedSecret)

@@ -2,10 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
+	"os"
 
+	"github.com/jhotmann/clipshift/backends"
+	"github.com/oleiade/reflections"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
 func init() {
@@ -14,43 +18,54 @@ func init() {
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Print all configuration",
-	Long: `Print all configuration
-Use 'get' and 'set' subcommands to get/set individual items
-Use 'init' subcommand to initialize a new config file`,
-	Run: func(cmd *cobra.Command, args []string) {
-		configPrinter("client-name")
-		configPrinter("logging.level")
-		configPrinter("logging.destination")
-		for i := range config.Backends {
-			configPrinter(fmt.Sprintf("backends.%d.%s", i, "type"))
-			configPrinter(fmt.Sprintf("backends.%d.%s", i, "host"))
-			configPrinter(fmt.Sprintf("backends.%d.%s", i, "user"))
-			configPrinterSensitive(fmt.Sprintf("backends.%d.%s", i, "pass"))
-			configPrinter(fmt.Sprintf("backends.%d.%s", i, "action"))
-			configPrinter(fmt.Sprintf("backends.%d.%s", i, "topic"))
-			configPrinterSensitive(fmt.Sprintf("backends.%d.%s", i, "encryptionkey"))
+	Short: "Manage configuration",
+	Long: `Manage configuration
+Use 'get' and 'set' subcommands to get/set properties
+Use 'init' subcommand to initialize a new config file
+Use 'add-backend' to add a new backend
+User 'edit-backend' to edit an existing backend`,
+}
+
+func writeConfig() error {
+	out, err := yaml.Marshal(config)
+	if err != nil {
+		log.WithError(err).Println("Error converting config to yaml")
+		return err
+	}
+	err = os.WriteFile(viper.ConfigFileUsed(), out, 0755)
+	if err != nil {
+		log.WithError(err).Println("Error writing config file")
+		return err
+	}
+	return nil
+}
+
+func getTextInput(prompt string) string {
+	response, err := pterm.DefaultInteractiveTextInput.WithDefaultText(prompt).Show()
+	if err != nil {
+		log.WithError(err).Error("Error getting user input")
+		os.Exit(1)
+	}
+	return response
+}
+
+func printBackendConfig(b backends.BackendConfig) {
+	fieldMap, _ := reflections.Items(&b)
+	configText := "Backend Config"
+	for k, v := range fieldMap {
+		stringVal := fmt.Sprintf("%v", v)
+		if stringVal != "" {
+			configText = fmt.Sprintf("%s\n  %s: %s", configText, k, stringVal)
 		}
-	},
+	}
+	println(configText)
 }
 
-func configPrinter(key string) {
-	val := viper.Get(key)
-	if val == nil {
-		return
+func getBackendHostTypes() []string {
+	var availableTypes []string
+	hosts, _ := reflections.Items(&backends.Hosts)
+	for _, v := range hosts {
+		availableTypes = append(availableTypes, fmt.Sprintf("%v", v))
 	}
-	fmt.Printf("%s: %v\n", key, val)
-}
-
-func configPrinterSensitive(key string) {
-	val := viper.GetString(key)
-	if val == "" {
-		return
-	}
-	half := len(val) / 2
-	if half > 10 {
-		half = 10
-	}
-	redacted := val[0:half] + strings.Repeat("*", half)
-	fmt.Printf("%s: %s\n", key, redacted)
+	return availableTypes
 }

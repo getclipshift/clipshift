@@ -40,7 +40,7 @@ func ntfyInitialize(config BackendConfig) *NtfyClient {
 }
 
 func (c *NtfyClient) HandleMessages() {
-	if c.Config.Action == SyncActions.Push {
+	if c.Config.Action == SyncActions.Push || c.Config.Action == SyncActions.Manual {
 		return
 	}
 	for m := range c.Client.Messages {
@@ -59,7 +59,7 @@ func (c *NtfyClient) HandleMessages() {
 }
 
 func (c *NtfyClient) Post(clip string) error {
-	if c.Config.Action == SyncActions.Pull {
+	if c.Config.Action == SyncActions.Pull || c.Config.Action == SyncActions.Manual {
 		return nil
 	}
 	if c.Cipher != nil {
