@@ -7,9 +7,14 @@ import (
 	"github.com/jhotmann/clipshift/backends"
 	"github.com/oleiade/reflections"
 	"github.com/pterm/pterm"
+	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
+)
+
+var (
+	app *tview.Application
 )
 
 func init() {
@@ -40,32 +45,117 @@ func writeConfig() error {
 	return nil
 }
 
-func getTextInput(prompt string) string {
-	response, err := pterm.DefaultInteractiveTextInput.WithDefaultText(prompt).Show()
-	if err != nil {
-		log.WithError(err).Error("Error getting user input")
-		os.Exit(1)
+func addEditBackendForm(configIndex int) {
+	var b *backends.BackendConfig
+	add := false
+	if configIndex > -1 {
+		b = &config.Backends[configIndex]
+	} else {
+		b = &config.Backends[len(config.Backends)-1]
+		add = true
 	}
-	return response
-}
 
-func printBackendConfig(b backends.BackendConfig) {
-	fieldMap, _ := reflections.Items(&b)
-	configText := "Backend Config"
-	for k, v := range fieldMap {
-		stringVal := fmt.Sprintf("%v", v)
-		if stringVal != "" {
-			configText = fmt.Sprintf("%s\n  %s: %s", configText, k, stringVal)
+	// Create form
+	form := tview.NewForm()
+	form.SetBorder(true).SetTitle(b.Type + " Options").SetTitleAlign(tview.AlignLeft)
+
+	// Host address
+	if add {
+		switch b.Type {
+		case backends.Hosts.Nostr:
+			b.Host = "wss://"
+		default:
+			b.Host = "https://"
 		}
 	}
-	println(configText)
-}
+	form.AddInputField("Address:", b.Host, 40, nil, func(text string) {
+		b.Host = text
+	})
 
-func getBackendHostTypes() []string {
-	var availableTypes []string
-	hosts, _ := reflections.Items(&backends.Hosts)
-	for _, v := range hosts {
-		availableTypes = append(availableTypes, fmt.Sprintf("%v", v))
+	// User and Pass
+	switch b.Type {
+	case backends.Hosts.Nostr:
+		// With nostr, a private key is all we need
+		form.AddTextArea("Private key:", b.Pass, 0, 4, 0, func(text string) {
+			b.Pass = text
+		})
+	default:
+		form.AddInputField("Username:", b.User, 40, nil, func(text string) {
+			b.User = text
+		})
+		form.AddInputField("Password:", b.Pass, 60, nil, func(text string) {
+			b.Pass = text
+		})
 	}
-	return availableTypes
+
+	// platform-specific options
+	switch b.Type {
+	case backends.Hosts.Ntfy:
+		form.AddInputField("Topic:", b.Topic, 40, nil, func(text string) {
+			b.Topic = text
+		})
+		form.AddInputField("Encryption Key (optional):", b.EncryptionKey, 40, nil, func(text string) {
+			b.EncryptionKey = text
+		})
+	}
+
+	// Action
+	var availableActions []string
+	selectedAction := 0
+	index := 0
+	actions, _ := reflections.Items(&backends.SyncActions)
+	for _, v := range actions {
+		action := fmt.Sprintf("%v", v)
+		availableActions = append(availableActions, action)
+		if add && action == backends.SyncActions.Sync {
+			selectedAction = index
+		} else if action == b.Action {
+			selectedAction = index
+		}
+		index += 1
+	}
+	form.AddDropDown("Action (dropdown):", availableActions, selectedAction, func(text string, i int) {
+		b.Action = text
+	})
+
+	// Form buttons
+	form.AddButton("Save", func() {
+		app.Stop()
+		err := writeConfig()
+		if err != nil {
+			pterm.Error.Printfln("Error writing config file: %v", err)
+		} else {
+			pterm.Success.Println("Config updated")
+		}
+	})
+	if !add {
+		form.AddButton("Delete", func() {
+			app.Stop()
+			var keepBackends []backends.BackendConfig
+			for i, existing := range config.Backends {
+				if i != configIndex {
+					keepBackends = append(keepBackends, existing)
+				}
+			}
+			config.Backends = keepBackends
+			err := writeConfig()
+			if err != nil {
+				pterm.Error.Printfln("Error writing config file: %v", err)
+				os.Exit(1)
+			}
+			pterm.Success.Println("Config updated")
+		})
+	}
+	form.AddButton("Quit", func() {
+		app.Stop()
+	})
+
+	if app.GetFocus() == nil {
+		if err := app.SetRoot(form, true).EnableMouse(true).Run(); err != nil {
+			log.WithError(err).Error("Error in TUI")
+			os.Exit(1)
+		}
+	} else {
+		app.SetRoot(form, true)
+	}
 }

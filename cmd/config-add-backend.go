@@ -5,8 +5,7 @@ import (
 	"os"
 
 	"github.com/jhotmann/clipshift/backends"
-	"github.com/oleiade/reflections"
-	"github.com/pterm/pterm"
+	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 )
 
@@ -21,62 +20,20 @@ var configAddBackendCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		newBackend := backends.BackendConfig{}
 
-		selectedType, err := pterm.DefaultInteractiveSelect.WithOptions(getBackendHostTypes()).Show()
-		if err != nil {
-			log.WithError(err).Error("Error getting backend type")
+		app = tview.NewApplication()
+		box := tview.NewBox().SetBorder(true).SetTitle("Select Backend Type").SetTitleAlign(tview.AlignLeft)
+		list := tview.NewList()
+		list.Box = box
+		list.AddItem("ntfy", "Push notification server", []rune(fmt.Sprintf("%d", 1))[0], nil)
+		list.AddItem("nostr", "Encrypted direct messages over a relay", []rune(fmt.Sprintf("%d", 2))[0], nil)
+		list.SetSelectedFunc(func(_ int, t string, _ string, _ rune) {
+			newBackend.Type = t
+			config.Backends = append(config.Backends, newBackend)
+			addEditBackendForm(-1)
+		})
+		if err := app.SetRoot(list, true).EnableMouse(true).Run(); err != nil {
+			log.WithError(err).Error("Error in TUI")
 			os.Exit(1)
 		}
-		newBackend.Type = selectedType
-
-		var hostHint string
-		switch selectedType {
-		case backends.Hosts.Nostr:
-			hostHint = "wss://relay.example.com"
-		case backends.Hosts.Ntfy:
-			hostHint = "https://ntfy.example.com"
-		}
-
-		newBackend.Host = getTextInput("Host (" + hostHint + ")")
-
-		switch selectedType {
-		case backends.Hosts.Nostr:
-			newBackend.Pass = getTextInput("Nostr private key")
-		default:
-			newBackend.User = getTextInput("Username")
-			newBackend.Pass = getTextInput("Password")
-		}
-
-		// platform-specific options
-		switch selectedType {
-		case backends.Hosts.Ntfy:
-			newBackend.Topic = getTextInput("Topic")
-			newBackend.EncryptionKey = getTextInput("Encryption key (leave blank to disable encryption)")
-		}
-
-		var availableActions []string
-		actions, _ := reflections.Items(&backends.SyncActions)
-		for _, v := range actions {
-			availableActions = append(availableActions, fmt.Sprintf("%v", v))
-		}
-		selectedAction, err := pterm.DefaultInteractiveSelect.WithOptions(availableActions).Show()
-		if err != nil {
-			log.WithError(err).Error("Error getting backend action")
-			os.Exit(1)
-		}
-		newBackend.Action = selectedAction
-
-		// Confirm
-		printBackendConfig(newBackend)
-		confirmation, err := pterm.DefaultInteractiveConfirm.WithDefaultText("Add to configuration").WithDefaultValue(true).Show()
-		if err != nil {
-			log.WithError(err).Error("Error getting confirmation")
-			os.Exit(1)
-		}
-		if !confirmation {
-			os.Exit(0)
-		}
-
-		config.Backends = append(config.Backends, newBackend)
-		writeConfig()
 	},
 }
