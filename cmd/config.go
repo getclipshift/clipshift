@@ -158,3 +158,13 @@ func addEditBackendForm(configIndex int) {
 		app.SetRoot(form, true)
 	}
 }
+
+func indexToRune(i int) rune {
+	var shortcut rune
+	if i < 9 {
+		shortcut = []rune(fmt.Sprintf("%d", i+1))[0]
+	} else {
+		shortcut = []rune("abcdefghijklmnopqrstuvwxyz")[i-9]
+	}
+	return shortcut
+}

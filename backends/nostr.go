@@ -27,8 +27,10 @@ func nostrInitialize(config BackendConfig) *NostrClient {
 	var err error
 	if config.Pass != "" && config.User == "" {
 		config.User, err = nostr.GetPublicKey(config.Pass)
-		log.WithError(err).Error("Invalid password configured")
-		return nil
+		if err != nil {
+			log.WithError(err).Error("Invalid password configured")
+			return nil
+		}
 	}
 	c := NostrClient{
 		Config: config,
@@ -70,25 +72,19 @@ func (c *NostrClient) HandleMessages() {
 	}
 	for ev := range c.Subscription.Events {
 		log.WithField("Event", ev).Debug("Nostr message received")
-		content, err := nip04.Decrypt(ev.Content, c.SharedSecret)
-		if err != nil {
-			logger.Log.WithError(err).Error("Error decrypting Nostr message contnet")
+		clientName, message := decryptNostrMessage(ev.Content, c.SharedSecret)
+		if clientName == "" && message == "" {
+			continue
+		} else if clientName == c.Client {
 			continue
 		}
-		parts := strings.SplitN(content, "---", 2)
-		if len(parts) != 2 {
-			log.WithField("Content", content).Error("Ignoring Nostr message because it is an incorrect format")
-			continue
-		}
-		if parts[0] == c.Client {
-			continue
-		}
-		ClipReceived(parts[1], parts[0])
+		ClipReceived(message, clientName)
 	}
 }
 
 func (c *NostrClient) Post(clip string) error {
 	if c.Config.Action == SyncActions.Pull || c.Config.Action == SyncActions.Manual {
+		log.WithField("Action", c.Config.Action).Debug("Not posting clipboard due to configured Action")
 		return nil
 	}
 	encrypted, err := nip04.Encrypt(fmt.Sprintf("%s---%s", c.Client, clip), c.SharedSecret)
@@ -114,9 +110,53 @@ func (c *NostrClient) Post(clip string) error {
 	return nil
 }
 
+func (c *NostrClient) Get() string {
+	if c == nil {
+		return ""
+	}
+	pastDay := time.Now().Add(-24 * time.Hour)
+	filter := nostr.Filter{
+		Kinds:   []int{4},
+		Authors: []string{c.Config.User},
+		Limit:   1,
+		Since:   &pastDay,
+	}
+	c.Relay.Connect(c.Ctx)
+	events := c.Relay.QuerySync(c.Ctx, filter)
+	log.WithFields(logrus.Fields{
+		"Count": len(events),
+	}).Debug("Queried Nostr events")
+	if len(events) == 0 {
+		return ""
+	}
+	clientName, message := decryptNostrMessage(events[0].Content, c.SharedSecret)
+	if clientName == "" && message == "" {
+		return ""
+	}
+	return message
+}
+
+func (c *NostrClient) GetConfig() *BackendConfig {
+	return &c.Config
+}
+
 func (c *NostrClient) Close() {
 	log.Debug("Closing nostr stream")
 	c.Cancel()
 	c.Relay.Connection.Close()
 	c.Relay.Close()
+}
+
+func decryptNostrMessage(encrypted string, secret []byte) (clientName string, message string) {
+	content, err := nip04.Decrypt(encrypted, secret)
+	if err != nil {
+		logger.Log.WithError(err).Error("Error decrypting Nostr message contnet")
+		return "", ""
+	}
+	parts := strings.SplitN(content, "---", 2)
+	if len(parts) != 2 {
+		log.WithField("Content", content).Error("Ignoring Nostr message because it is an incorrect format")
+		return "", ""
+	}
+	return parts[0], parts[1]
 }

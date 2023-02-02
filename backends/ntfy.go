@@ -1,6 +1,8 @@
 package backends
 
 import (
+	"time"
+
 	"github.com/golang-module/dongle"
 	"github.com/jhotmann/clipshift/internal/aes"
 	"github.com/sirupsen/logrus"
@@ -73,6 +75,30 @@ func (c *NtfyClient) Post(clip string) error {
 		log.Debugf("Clipboard sent to ntfy host %s", c.Config.Host)
 	}
 	return err
+}
+
+func (c *NtfyClient) Get() string {
+	opts := append(c.BaseOptions, ntfyClient.WithSinceDuration(24*time.Hour))
+	messages, err := c.Client.Poll(c.Config.Topic, opts...)
+	if err != nil {
+		log.WithError(err).Error("Error getting ntfy messages")
+		return ""
+	}
+	log.WithFields(logrus.Fields{
+		"Count": len(messages),
+	}).Info("Queried Ntfy messages")
+	if len(messages) == 0 {
+		return ""
+	}
+	message := messages[len(messages)-1].Message
+	if c.Config.EncryptionKey != "" {
+		message = aes.Decrypt(c.Cipher, message)
+	}
+	return message
+}
+
+func (c *NtfyClient) GetConfig() *BackendConfig {
+	return &c.Config
 }
 
 func (c *NtfyClient) Close() {

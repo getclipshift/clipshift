@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
@@ -36,13 +35,7 @@ var configEditBackendCmd = &cobra.Command{
 		list := tview.NewList()
 		list.Box = box
 		for i, b := range config.Backends {
-			var shortcut rune
-			if i < 9 {
-				shortcut = []rune(fmt.Sprintf("%d", i+1))[0]
-			} else {
-				shortcut = []rune("abcdefghijklmnopqrstuvwxyz")[i-9]
-			}
-			list.AddItem(b.Type, b.Host, shortcut, nil)
+			list.AddItem(b.Type, b.Host, indexToRune(i), nil)
 		}
 		list.SetSelectedFunc(func(i int, _ string, _ string, _ rune) {
 			addEditBackendForm(i)
