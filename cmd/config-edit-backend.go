@@ -15,9 +15,10 @@ func init() {
 }
 
 var configEditBackendCmd = &cobra.Command{
-	Use:   "edit-backend",
-	Short: "Edit a backend",
-	Long:  `Edit a backend server from your configuration`,
+	Use:     "edit-backend",
+	Aliases: []string{"edit", "e"},
+	Short:   "Edit a backend",
+	Long:    `Edit a backend server from your configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(config.Backends) == 0 {
 			pterm.Error.Println("No backends configured, add one with 'clipshift config add-backend'")
@@ -35,7 +36,13 @@ var configEditBackendCmd = &cobra.Command{
 		list := tview.NewList()
 		list.Box = box
 		for i, b := range config.Backends {
-			list.AddItem(b.Type, b.Host, []rune(fmt.Sprintf("%d", i+1))[0], nil)
+			var shortcut rune
+			if i < 9 {
+				shortcut = []rune(fmt.Sprintf("%d", i+1))[0]
+			} else {
+				shortcut = []rune("abcdefghijklmnopqrstuvwxyz")[i-9]
+			}
+			list.AddItem(b.Type, b.Host, shortcut, nil)
 		}
 		list.SetSelectedFunc(func(i int, _ string, _ string, _ rune) {
 			addEditBackendForm(i)

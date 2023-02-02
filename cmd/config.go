@@ -26,7 +26,6 @@ var configCmd = &cobra.Command{
 	Short: "Manage configuration",
 	Long: `Manage configuration
 Use 'get' and 'set' subcommands to get/set properties
-Use 'init' subcommand to initialize a new config file
 Use 'add-backend' to add a new backend
 User 'edit-backend' to edit an existing backend`,
 }

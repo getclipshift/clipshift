@@ -14,9 +14,10 @@ func init() {
 }
 
 var configAddBackendCmd = &cobra.Command{
-	Use:   "add-backend",
-	Short: "Add a backend server",
-	Long:  `Add a backend server to your configuration`,
+	Use:     "add-backend",
+	Aliases: []string{"add", "a"},
+	Short:   "Add a backend server",
+	Long:    `Add a backend server to your configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
 		newBackend := backends.BackendConfig{}
 

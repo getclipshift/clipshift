@@ -13,9 +13,10 @@ func init() {
 }
 
 var configGetCmd = &cobra.Command{
-	Use:   "get [optional setting name(s)]",
-	Short: "Print configuration",
-	Long:  `Print all configuration or just the specified value`,
+	Use:     "get [optional setting name(s)]",
+	Aliases: []string{"g"},
+	Short:   "Print configuration",
+	Long:    `Print all configuration or just the specified value`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 { // print all
 			configPrinter("client-name")

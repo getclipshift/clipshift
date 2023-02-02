@@ -16,9 +16,10 @@ func init() {
 }
 
 var configSetCmd = &cobra.Command{
-	Use:   "set [setting] [value]",
-	Args:  cobra.ExactArgs(2),
-	Short: "Set a configuration value",
+	Use:     "set [setting] [value]",
+	Aliases: []string{"s"},
+	Args:    cobra.ExactArgs(2),
+	Short:   "Set a configuration value",
 	Long: `Set a configuration value
 Use 'config' with no arguments to print all settings`,
 	Run: func(cmd *cobra.Command, args []string) {
