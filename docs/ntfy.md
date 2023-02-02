@@ -3,6 +3,7 @@
 [ntfy](https://ntfy.sh) is a simple pub/sub server for sending notifications to your devices. If you are connecting to the public instance, I suggest using a random string for the topic name as well as enabling encryption. If you are using a self-hosted instance, I suggest creating a new user solely for clipshift that is separate from any other user accounts.
 
 ## clipshift config
+Use `clipshift config add-backend` to be guided through the configuration options or you can manually edit `~/.clipshift/config.yaml` and add the following:
 
 - Using the public server
 
