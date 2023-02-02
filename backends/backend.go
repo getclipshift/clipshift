@@ -1,6 +1,8 @@
 package backends
 
 import (
+	"strings"
+
 	"github.com/jhotmann/clipshift/internal/logger"
 	"github.com/sirupsen/logrus"
 	"golang.design/x/clipboard"
@@ -12,24 +14,34 @@ var (
 
 	clients     []BackendClient
 	SyncActions = struct {
-		Push string
-		Pull string
-		Sync string
+		Push   string
+		Pull   string
+		Sync   string
+		Manual string
 	}{
-		Push: "push",
-		Pull: "pull",
-		Sync: "sync",
+		Push:   "push",
+		Pull:   "pull",
+		Sync:   "sync",
+		Manual: "manual",
+	}
+	Hosts = struct {
+		Ntfy  string
+		Nostr string
+	}{
+		Ntfy:  "ntfy",
+		Nostr: "nostr",
 	}
 )
 
 type BackendConfig struct {
 	Type          string `yaml:"type"`
 	Host          string `yaml:"host"`
-	User          string `yaml:"user"`
-	Pass          string `yaml:"pass"`
-	Topic         string `yaml:"topic"`
-	EncryptionKey string `yaml:"encryptionkey"`
+	User          string `yaml:"user,omitempty"`
+	Pass          string `yaml:"pass,omitempty"`
+	Topic         string `yaml:"topic,omitempty"`
+	EncryptionKey string `yaml:"encryptionkey,omitempty"`
 	Action        string `yaml:"action"`
+	Compression   bool   `yaml:"compression,omitempty"`
 }
 
 type BackendClient interface {
@@ -40,10 +52,10 @@ type BackendClient interface {
 
 func New(config BackendConfig) BackendClient {
 	var client BackendClient
-	switch config.Type {
-	case "nostr":
+	switch strings.ToLower(config.Type) {
+	case Hosts.Nostr:
 		client = nostrInitialize(config)
-	case "ntfy":
+	case Hosts.Ntfy:
 		client = ntfyInitialize(config)
 	}
 	clients = append(clients, client)

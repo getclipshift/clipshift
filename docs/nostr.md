@@ -7,6 +7,7 @@ In order to avoid taxing public relays, I suggest running a private relay. [Nost
 [Awesome Nostr](https://github.com/aljazceru/awesome-nostr)
 
 ## clipshift config
+Use `clipshift config add-backend` to be guided through the configuration options or you can manually edit `~/.clipshift/config.yaml` and add the following:
 
 ```yaml
 backends:
