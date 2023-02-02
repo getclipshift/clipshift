@@ -48,6 +48,8 @@ type BackendClient interface {
 	HandleMessages()
 	Post(string) error
 	Close()
+	Get() string
+	GetConfig() *BackendConfig
 }
 
 func New(config BackendConfig) BackendClient {

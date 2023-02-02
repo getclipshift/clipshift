@@ -52,6 +52,7 @@ var sendCmd = &cobra.Command{
 						continue
 					}
 				}
+				b.Action = backends.SyncActions.Push
 				c := backends.New(b)
 				if c != nil {
 					clients = append(clients, c)
