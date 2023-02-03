@@ -33,11 +33,11 @@ release:
   discussion_category_name: General
   prerelease: auto
 brews:
-  tap:
-    owner: getclipshift
-    name: homebrew-tap
-  homepage: "https://github.com/getclipshift/clipshift"
-  license: "MIT"
-  skip_upload: auto
-  test: |
-      system "#{bin}/clipshift"
+  - tap:
+      owner: getclipshift
+      name: homebrew-tap
+    homepage: "https://github.com/getclipshift/clipshift"
+    license: "MIT"
+    skip_upload: auto
+    test: |
+        system "#{bin}/clipshift"
