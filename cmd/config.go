@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/jhotmann/clipshift/backends"
+	"github.com/nbd-wtf/go-nostr"
 	"github.com/oleiade/reflections"
 	"github.com/pterm/pterm"
 	"github.com/rivo/tview"
@@ -75,14 +76,21 @@ func addEditBackendForm(configIndex int) {
 	switch b.Type {
 	case backends.Hosts.Nostr:
 		// With nostr, a private key is all we need
-		form.AddTextArea("Private key:", b.Pass, 0, 4, 0, func(text string) {
+		pkLabel := "Private key:"
+		form.AddInputField(pkLabel, b.Pass, 65, nil, func(text string) {
 			b.Pass = text
+		})
+		form.AddButton("Generate Private Key", func() {
+			generated := nostr.GeneratePrivateKey()
+			pkIndex := form.GetFormItemIndex(pkLabel)
+			form.GetFormItem(pkIndex).(*tview.InputField).SetText(generated)
+			form.SetFocus(pkIndex)
 		})
 	default:
 		form.AddInputField("Username:", b.User, 40, nil, func(text string) {
 			b.User = text
 		})
-		form.AddInputField("Password:", b.Pass, 60, nil, func(text string) {
+		form.AddInputField("Password:", b.Pass, 65, nil, func(text string) {
 			b.Pass = text
 		})
 	}
@@ -90,11 +98,17 @@ func addEditBackendForm(configIndex int) {
 	// platform-specific options
 	switch b.Type {
 	case backends.Hosts.Ntfy:
-		form.AddInputField("Topic:", b.Topic, 40, nil, func(text string) {
+		form.AddInputField("Topic:", b.Topic, 65, nil, func(text string) {
 			b.Topic = text
 		})
 		form.AddInputField("Encryption Key (optional):", b.EncryptionKey, 40, nil, func(text string) {
 			b.EncryptionKey = text
+		})
+		form.AddButton("Generate Topic", func() {
+			generated := nostr.GeneratePrivateKey()
+			topicIndex := form.GetFormItemIndex("Topic:")
+			form.GetFormItem(topicIndex).(*tview.InputField).SetText(generated)
+			form.SetFocus(topicIndex)
 		})
 	}
 
