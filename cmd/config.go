@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/jhotmann/clipshift/backends"
 	"github.com/nbd-wtf/go-nostr"
@@ -35,6 +36,11 @@ func writeConfig() error {
 	out, err := yaml.Marshal(config)
 	if err != nil {
 		log.WithError(err).Println("Error converting config to yaml")
+		return err
+	}
+	err = os.MkdirAll(filepath.Dir(viper.ConfigFileUsed()), 0755)
+	if err != nil {
+		log.WithError(err).Error("Error creating config directory")
 		return err
 	}
 	err = os.WriteFile(viper.ConfigFileUsed(), out, 0755)

@@ -12,7 +12,7 @@ builds:
       - amd64
       - arm64
     env:
-      - CGO_enabled=1
+      - CGO_ENABLED=1
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 archives:

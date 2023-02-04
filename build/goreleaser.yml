@@ -13,7 +13,7 @@ builds:
       - amd64
       - arm64
     env:
-      - CGO_enabled=1
+      - CGO_ENABLED=1
   - id: darwin-amd-tray
     binary: clipshift
     tags:
@@ -23,7 +23,7 @@ builds:
     goarch:
       - amd64
     env:
-      - CGO_enabled=1
+      - CGO_ENABLED=1
   - id: darwin-arm-tray
     binary: clipshift
     tags:
@@ -33,7 +33,7 @@ builds:
     goarch:
       - arm64
     env:
-      - CGO_enabled=1
+      - CGO_ENABLED=1
   # - id: linux-amd
   #   binary: clipshift
   #   main: main.go
@@ -42,7 +42,7 @@ builds:
   #   goarch:
   #     - amd64
   #   env:
-  #     - CGO_enabled=1
+  #     - CGO_ENABLED=1
   #     - CC=x86_64-linux-gnu-gcc
   #     - CCX=x86_64-linux-gnu-g++
   # - id: linux-arm
@@ -53,7 +53,7 @@ builds:
   #   goarch:
   #     - arm64
   #   env:
-  #     - CGO_enabled=1
+  #     - CGO_ENABLED=1
   #     - CC=aarch64-linux-gnu-gcc
   #     - CCX=aarch64-linux-gnu-g++
   - id: windows-tray
@@ -68,6 +68,6 @@ builds:
       - amd64
       - arm64
     env:
-      - CGO_enabled=1
+      - CGO_ENABLED=1
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
