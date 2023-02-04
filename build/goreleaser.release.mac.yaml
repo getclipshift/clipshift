@@ -1,12 +1,10 @@
 before:
   hooks:
     - go mod tidy
-    - go generate ./...
 builds:
   - binary: clipshift
     goos:
-      - linux
-      - windows
+      - darwin
     goarch:
       - amd64
       - arm64
@@ -28,6 +26,17 @@ release:
   github:
     owner: getclipshift
     name: clipshift
+  mode: keep-existing
   draft: false
-  discussion_category_name: General
   prerelease: auto
+brews:
+  - ids:
+      - darwin
+    tap:
+      owner: getclipshift
+      name: homebrew-tap
+    homepage: "https://github.com/getclipshift/clipshift"
+    license: "MIT"
+    skip_upload: auto
+    test: |
+        system "#{bin}/clipshift"

@@ -105,7 +105,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: build -f build/goreleaser.yml --clean --snapshot --id darwin-amd-tray
+          args: build -f build/goreleaser.yml --clean --snapshot --id darwin --id darwin-amd-tray
       - name: Create App Bundle
         run: ./build/macpackage.sh "darwin-amd-tray_darwin_amd64_v1" "clipshift-amd64.app"
       - name: Upload Artifacts
