@@ -10,6 +10,9 @@ builds:
     goarch:
       - amd64
       - arm64
+    ignore:
+      - goos: linux
+        goarch: arm64
     env:
       - CGO_ENABLED=1
 snapshot:
