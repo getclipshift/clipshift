@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/jhotmann/clipshift/backends"
-	"github.com/jhotmann/clipshift/internal/logger"
+	"github.com/getclipshift/clipshift/backends"
+	"github.com/getclipshift/clipshift/internal/logger"
 )
 
 var (

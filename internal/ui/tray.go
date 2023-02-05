@@ -7,8 +7,8 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/getclipshift/clipshift/backends"
 	"github.com/getlantern/systray"
-	"github.com/jhotmann/clipshift/backends"
 )
 
 //go:embed clipboard.png

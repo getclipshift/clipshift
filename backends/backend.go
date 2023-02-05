@@ -3,7 +3,7 @@ package backends
 import (
 	"strings"
 
-	"github.com/jhotmann/clipshift/internal/logger"
+	"github.com/getclipshift/clipshift/internal/logger"
 	"github.com/sirupsen/logrus"
 	"golang.design/x/clipboard"
 )

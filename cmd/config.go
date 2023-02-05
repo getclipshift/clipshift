@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jhotmann/clipshift/backends"
+	"github.com/getclipshift/clipshift/backends"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/oleiade/reflections"
 	"github.com/pterm/pterm"

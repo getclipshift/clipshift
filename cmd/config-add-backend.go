@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jhotmann/clipshift/backends"
+	"github.com/getclipshift/clipshift/backends"
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"
 )
