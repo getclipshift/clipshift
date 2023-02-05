@@ -77,7 +77,7 @@ jobs:
           name: Dependencies
           command: |
             curl -Lo go.tar.gz https://go.dev/dl/go1.19.5.darwin-amd64.tar.gz
-            tar -C /usr/local -xzf go.tar.gz
+            sudo tar -C /usr/local -xzf go.tar.gz
             export PATH=$PATH:/usr/local/go/bin
             mkdir -p dist/darwin/amd64
       - run:
