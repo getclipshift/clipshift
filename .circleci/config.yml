@@ -5,22 +5,122 @@ version: 2.1
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  say-hello:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+  linux-win:
     docker:
-      - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+      - image: cimg/go:1.19.5
     steps:
       - checkout
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: Dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y libx11-dev libgtk-3-dev libayatana-appindicator3-dev
+            mkdir -p dist/linux/amd64
+            mkdir -p dist/windows/amd64
+            mkdir -p dist/windows/arm64
+      - run:
+          name: Linux
+          command: CGO_ENABLED=1 go build -o dist/linux/amd64/clipshift main.go
+      - run:
+          name: Linux Tray
+          command: CGO_ENABLED=1 go build -tags tray -o dist/linux/amd64/clipshift-tray main.go
+      - run:
+          name: Windows AMD64
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -o dist/windows/amd64/clipshift main.go
+      - run:
+          name: Windows AMD64 Tray
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -tags tray -ldflags -H=windowsgui -o dist/windows/amd64/clipshift-tray main.go
+      - run:
+          name: Windows ARM64
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -o dist/windows/arm64/clipshift main.go
+      - run:
+          name: Windows ARM64 Tray
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -tags tray -ldflags -H=windowsgui -o dist/windows/arm64/clipshift-tray main.go
+      - persist_to_workspace:
+          root: dist
+          paths:
+            - linux/amd64/clipshift
+            - linux/amd64/clipshift-tray
+            - windows/amd64/clipshift
+            - windows/amd64/clipshift-tray
+            - windows/arm64/clipshift
+            - windows/arm64/clipshift-tray
+  linux-arm:
+    machine:
+      image: ubuntu-2204:2022.10.2
+    resource_class: arm.medium
+    steps:
+      - checkout
+      - run:
+          name: Dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y libx11-dev libgtk-3-dev libayatana-appindicator3-dev
+            curl -Lo go.tar.gz https://go.dev/dl/go1.19.5.linux-arm64.tar.gz
+            tar -C /usr/local -xzf go.tar.gz
+            export PATH=$PATH:/usr/local/go/bin
+            mkdir -p dist/linux/arm64
+      - run:
+          name: Linux ARM64
+          command: CGO_ENABLED=1 go build -o dist/linux/arm64/clipshift main.go
+      - run:
+          name: Linux ARM64 Tray
+          command: CGO_ENABLED=1 go build -tags tray -o dist/linux/arm64/clipshift-tray main.go
+      - persist_to_workspace:
+          root: dist
+          paths:
+            - linux/arm64/clipshift
+            - linux/arm64/clipshift-tray
+  mac-intel:
+    macos:
+      xcode: 12.5.1
+    steps:
+      - checkout
+      - run:
+          name: Dependencies
+          command: |
+            curl -Lo go.tar.gz https://go.dev/dl/go1.19.5.darwin-amd64.tar.gz
+            tar -C /usr/local -xzf go.tar.gz
+            export PATH=$PATH:/usr/local/go/bin
+            mkdir -p dist/darwin/amd64
+      - run:
+          name: Mac AMD64
+          command: CGO_ENABLED=1 go build -o dist/darwin/amd64/clipshift main.go
+      - run:
+          name: Mac AMD64 Tray
+          command: CGO_ENABLED=1 go build -tags tray -o dist/darwin/amd64/clipshift-tray main.go
+      - persist_to_workspace:
+          root: dist
+          paths:
+            - darwin/amd64/clipshift
+            - darwin/amd64/clipshift-tray
+  package:
+    machine:
+      image: ubuntu-2204:2022.10.2
+    steps:
+      - checkout
+      - attach_workspace:
+          at: dist
+      - run:
+          name: Package Release
+          command: |
+            ls -lAh dist
+            ls -lAh dist/darwin/amd64
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  say-hello-workflow:
+  build-and-test:
     jobs:
-      - say-hello
+      - linux-win
+      - linux-arm:
+          requires:
+            - linux-win
+      - mac-intel:
+          requires:
+            - linux-win
+      - package:
+          requires:
+            - linux-win
+            - linux-arm
+            - mac-intel

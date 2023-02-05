@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nbd-wtf/go-nostr v0.11.1
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -61,7 +62,6 @@ require (
 	golang.org/x/time v0.3.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 require (
