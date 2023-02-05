@@ -55,7 +55,7 @@ jobs:
           name: Dependencies
           command: |
             sudo apt-get update
-            sudo apt-get install -y libx11-dev libgtk-3-dev libayatana-appindicator3-dev
+            sudo NEEDRESTART_MODE=a apt-get install -y libx11-dev libgtk-3-dev libayatana-appindicator3-dev
             curl -Lo go.tar.gz https://go.dev/dl/go1.19.5.linux-arm64.tar.gz
             tar -C /usr/local -xzf go.tar.gz
             export PATH=$PATH:/usr/local/go/bin
