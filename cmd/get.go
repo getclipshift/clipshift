@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jhotmann/clipshift/backends"
+	"github.com/getclipshift/clipshift/backends"
 	"github.com/pterm/pterm"
 	"github.com/rivo/tview"
 	"github.com/spf13/cobra"

@@ -3,8 +3,8 @@ package backends
 import (
 	"time"
 
+	"github.com/getclipshift/clipshift/internal/aes"
 	"github.com/golang-module/dongle"
-	"github.com/jhotmann/clipshift/internal/aes"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	ntfyClient "heckel.io/ntfy/client"

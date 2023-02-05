@@ -1,4 +1,4 @@
-module github.com/jhotmann/clipshift
+module github.com/getclipshift/clipshift
 
 go 1.18
 

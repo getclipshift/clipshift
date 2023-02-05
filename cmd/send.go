@@ -3,8 +3,8 @@ package cmd
 import (
 	"os"
 
-	"github.com/jhotmann/clipshift/backends"
-	"github.com/jhotmann/clipshift/internal/clip"
+	"github.com/getclipshift/clipshift/backends"
+	"github.com/getclipshift/clipshift/internal/clip"
 	"github.com/pterm/pterm"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

@@ -3,8 +3,8 @@ package clip
 import (
 	"context"
 
-	"github.com/jhotmann/clipshift/backends"
-	"github.com/jhotmann/clipshift/internal/logger"
+	"github.com/getclipshift/clipshift/backends"
+	"github.com/getclipshift/clipshift/internal/logger"
 	"golang.design/x/clipboard"
 )
 

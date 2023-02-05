@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jhotmann/clipshift/internal/logger"
+	"github.com/getclipshift/clipshift/internal/logger"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip04"
 	"github.com/sirupsen/logrus"

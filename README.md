@@ -2,7 +2,7 @@
 WIP - A cross-platform clipboard syncing application written in Go
 
 # Installation
-Pre-built binaries are still a work in progress. In the meantime you'll have to use `go install github.com/jhotmann/clipshift@latest`
+Pre-built binaries are still a work in progress. In the meantime you'll have to use `go install github.com/getclipshift/clipshift@latest`
 
 # Usage
 
