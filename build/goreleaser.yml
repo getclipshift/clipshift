@@ -58,7 +58,7 @@ builds:
   #     - CCX=x86_64-linux-gnu-g++
   - id: linux-arm
     binary: clipshift
-    main: main.go
+    main: ./main.go
     goos:
       - linux
     goarch:
