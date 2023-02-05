@@ -117,16 +117,16 @@ jobs:
             zip dist/release/clipshift-tray_windows_arm64.zip dist/windows/arm64/clipshift-tray
 
             cd dist/release
-            sha256sums clipshift_linux_amd64.tar.gz >> checksums.txt
-            sha256sums clipshift-tray_linux_amd64.tar.gz >> checksums.txt
-            sha256sums clipshift_linux_arm64.tar.gz >> checksums.txt
-            sha256sums clipshift-tray_linux_arm64.tar.gz >> checksums.txt
-            sha256sums clipshift_darwin_amd64.tar.gz >> checksums.txt
-            sha256sums clipshift-tray_darwin_amd64.tar.gz >> checksums.txt
-            sha256sums clipshift_windows_amd64.zip >> checksums.txt
-            sha256sums clipshift-tray_windows_amd64.zip >> checksums.txt
-            sha256sums clipshift_windows_arm64.zip >> checksums.txt
-            sha256sums clipshift-tray_windows_arm64.zip >> checksums.txt
+            sha256sum clipshift_linux_amd64.tar.gz >> checksums.txt
+            sha256sum clipshift-tray_linux_amd64.tar.gz >> checksums.txt
+            sha256sum clipshift_linux_arm64.tar.gz >> checksums.txt
+            sha256sum clipshift-tray_linux_arm64.tar.gz >> checksums.txt
+            sha256sum clipshift_darwin_amd64.tar.gz >> checksums.txt
+            sha256sum clipshift-tray_darwin_amd64.tar.gz >> checksums.txt
+            sha256sum clipshift_windows_amd64.zip >> checksums.txt
+            sha256sum clipshift-tray_windows_amd64.zip >> checksums.txt
+            sha256sum clipshift_windows_arm64.zip >> checksums.txt
+            sha256sum clipshift-tray_windows_arm64.zip >> checksums.txt
       - store_artifacts:
           path: dist/release
 
