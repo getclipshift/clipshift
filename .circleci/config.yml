@@ -82,10 +82,10 @@ jobs:
             mkdir -p dist/darwin/amd64
       - run:
           name: Mac AMD64
-          command: CGO_ENABLED=1 go build -o dist/darwin/amd64/clipshift main.go
+          command: CGO_ENABLED=1 /usr/local/go/bin/go build -o dist/darwin/amd64/clipshift main.go
       - run:
           name: Mac AMD64 Tray
-          command: CGO_ENABLED=1 go build -tags tray -o dist/darwin/amd64/clipshift-tray main.go
+          command: CGO_ENABLED=1 /usr/local/go/bin/go build -tags tray -o dist/darwin/amd64/clipshift-tray main.go
       - persist_to_workspace:
           root: dist
           paths:
