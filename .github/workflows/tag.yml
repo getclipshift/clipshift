@@ -21,11 +21,30 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: '^1.19'
-      - name: Build tray-less all platforms, Windows w/ tray
+      - name: Package Linux/Windows
         uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
           version: latest
-          args: release -f build/goreleaser.release.yml --rm-dist
+          args: release -f build/goreleaser.release.yml --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_TOKEN }}
+
+  package-mac:
+    needs: package
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '^1.19'
+      - name: Package MacOS
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release -f build/goreleaser.release.mac.yml --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GORELEASER_TOKEN }}

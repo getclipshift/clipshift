@@ -7,7 +7,7 @@ on:
     branches: [ 'main' ]
 
 jobs:
-  main_build:
+  main:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,7 +24,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: build -f build/goreleaser.yml --rm-dist --snapshot --id default --id windows-tray
+          args: build -f build/goreleaser.yml --clean --snapshot --id default --id windows-tray
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -50,7 +50,7 @@ jobs:
   #       with:
   #         distribution: goreleaser
   #         version: latest
-  #         args: build -f build/goreleaser.yml --rm-dist --snapshot --id linux-amd --id windows
+  #         args: build -f build/goreleaser.yml --clean --snapshot --id linux-amd --id windows
   #     - name: Upload Artifact
   #       uses: actions/upload-artifact@v3
   #       with:
@@ -59,7 +59,7 @@ jobs:
   #           dist/**/clipshift
   #           dist/**/clipshift.exe
 
-  # build2:
+  # linux-arm64:
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: Checkout
@@ -71,7 +71,7 @@ jobs:
   #         arch: aarch64
   #         distro: bullseye
   #         run: |
-  #             apt-get update && apt-get install -y gcc libgtk-3-dev libayatana-appindicator3-dev curl git
+  #             apt-get update && apt-get install -y gcc libx11-dev libgtk-3-dev libayatana-appindicator3-dev curl git
   #             # golang
   #             echo "Downloading and Installing Go"
   #             curl -Lo go.tar.gz https://go.dev/dl/go1.19.5.linux-arm64.tar.gz
@@ -84,14 +84,14 @@ jobs:
   #             echo "Extracting Goreleaser"
   #             tar -xf goreleaser.tar.gz -C /usr/local/bin
   #             echo "Building"
-  #             /usr/local/bin/goreleaser build -f build/goreleaser.yml --rm-dist --snapshot --id linux-arm
+  #             /usr/local/bin/goreleaser build -f build/goreleaser.yml --clean --snapshot --id linux-arm
   #     - name: Upload Artifact
   #       uses: actions/upload-artifact@v3
   #       with:
   #         name: build2-artifacts
   #         path: dist/**/clipshift
 
-  mac_tray:
+  mac:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -105,7 +105,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: build -f build/goreleaser.yml --rm-dist --snapshot --id darwin-amd-tray
+          args: build -f build/goreleaser.yml --clean --snapshot --id darwin --id darwin-amd-tray
       - name: Create App Bundle
         run: ./build/macpackage.sh "darwin-amd-tray_darwin_amd64_v1" "clipshift-amd64.app"
       - name: Upload Artifacts
