@@ -94,6 +94,7 @@ jobs:
   package:
     machine:
       image: ubuntu-2204:2022.10.2
+    resource_class: medium
     steps:
       - checkout
       - attach_workspace:
@@ -101,8 +102,33 @@ jobs:
       - run:
           name: Package Release
           command: |
-            ls -lAh dist
-            ls -lAh dist/darwin/amd64
+            sudo apt-get install -y zip
+            mkdir -p dist/release
+
+            tar -czf dist/release/clipshift_linux_amd64.tar.gz dist/linux/amd64/clipshift
+            tar -czf dist/release/clipshift-tray_linux_amd64.tar.gz dist/linux/amd64/clipshift-tray
+            tar -czf dist/release/clipshift_linux_arm64.tar.gz dist/linux/arm64/clipshift
+            tar -czf dist/release/clipshift-tray_linux_arm64.tar.gz dist/linux/arm64/clipshift-tray
+            tar -czf dist/release/clipshift_darwin_amd64.tar.gz dist/darwin/amd64/clipshift
+            tar -czf dist/release/clipshift-tray_darwin_amd64.tar.gz dist/darwin/amd64/clipshift-tray
+            zip dist/release/clipshift_windows_amd64.zip dist/windows/amd64/clipshift
+            zip dist/release/clipshift-tray_windows_amd64.zip dist/windows/amd64/clipshift-tray
+            zip dist/release/clipshift_windows_arm64.zip dist/windows/arm64/clipshift
+            zip dist/release/clipshift-tray_windows_arm64.zip dist/windows/arm64/clipshift-tray
+
+            cd dist/release
+            sha256sums clipshift_linux_amd64.tar.gz >> checksums.txt
+            sha256sums clipshift-tray_linux_amd64.tar.gz >> checksums.txt
+            sha256sums clipshift_linux_arm64.tar.gz >> checksums.txt
+            sha256sums clipshift-tray_linux_arm64.tar.gz >> checksums.txt
+            sha256sums clipshift_darwin_amd64.tar.gz >> checksums.txt
+            sha256sums clipshift-tray_darwin_amd64.tar.gz >> checksums.txt
+            sha256sums clipshift_windows_amd64.zip >> checksums.txt
+            sha256sums clipshift-tray_windows_amd64.zip >> checksums.txt
+            sha256sums clipshift_windows_arm64.zip >> checksums.txt
+            sha256sums clipshift-tray_windows_arm64.zip >> checksums.txt
+      - store_artifacts:
+          path: dist/release
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
