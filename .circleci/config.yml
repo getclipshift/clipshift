@@ -20,22 +20,22 @@ jobs:
             mkdir -p dist/windows/arm64
       - run:
           name: Linux
-          command: CGO_ENABLED=1 go build -o dist/linux/amd64/clipshift main.go
+          command: CGO_ENABLED=1 go build -ldflags "-X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/linux/amd64/clipshift main.go
       - run:
           name: Linux Tray
-          command: CGO_ENABLED=1 go build -tags tray -o dist/linux/amd64/clipshift-tray main.go
+          command: CGO_ENABLED=1 go build -ldflags "-X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -tags tray -o dist/linux/amd64/clipshift-tray main.go
       - run:
           name: Windows AMD64
-          command: CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -o dist/windows/amd64/clipshift main.go
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -ldflags "-X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/windows/amd64/clipshift main.go
       - run:
           name: Windows AMD64 Tray
-          command: CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -tags tray -ldflags -H=windowsgui -o dist/windows/amd64/clipshift-tray main.go
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -tags tray -ldflags "-H=windowsgui -X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/windows/amd64/clipshift-tray main.go
       - run:
           name: Windows ARM64
-          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -o dist/windows/arm64/clipshift main.go
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -ldflags "-X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/windows/arm64/clipshift main.go
       - run:
           name: Windows ARM64 Tray
-          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -tags tray -ldflags -H=windowsgui -o dist/windows/arm64/clipshift-tray main.go
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -tags tray -ldflags "-H=windowsgui -X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/windows/arm64/clipshift-tray main.go
       - persist_to_workspace:
           root: dist
           paths:
@@ -100,7 +100,7 @@ jobs:
       - attach_workspace:
           at: dist
       - run:
-          name: Package Release
+          name: Zip binaries
           command: |
             sudo apt-get install -y zip
             mkdir -p dist/release
@@ -111,24 +111,73 @@ jobs:
             tar -czf dist/release/clipshift-tray_linux_arm64.tar.gz dist/linux/arm64/clipshift-tray
             tar -czf dist/release/clipshift_darwin_amd64.tar.gz dist/darwin/amd64/clipshift
             tar -czf dist/release/clipshift-tray_darwin_amd64.tar.gz dist/darwin/amd64/clipshift-tray
-            zip dist/release/clipshift_windows_amd64.zip dist/windows/amd64/clipshift
-            zip dist/release/clipshift-tray_windows_amd64.zip dist/windows/amd64/clipshift-tray
-            zip dist/release/clipshift_windows_arm64.zip dist/windows/arm64/clipshift
-            zip dist/release/clipshift-tray_windows_arm64.zip dist/windows/arm64/clipshift-tray
+            zip dist/release/clipshift_windows_amd64.zip dist/windows/amd64/clipshift dist/windows/amd64/clipshift-tray
+            zip dist/release/clipshift_windows_arm64.zip dist/windows/arm64/clipshift dist/windows/arm64/clipshift-tray
+      - run:
+          name: "Mac App"
+          command: |
+            mkdir -p dist/clipshift.app/Contents/MacOS
+            mkdir -p dist/clipshift.app/Contents/Resources
+            cp internal/ui/clipboard.icns dist/clipshift.app/Contents/Resources/clipshift.icns
+            cp dist/darwin/amd64/clipshift-tray dist/clipshift.app/Contents/MacOS/clipshift-tray
+            cp dist/darwin/amd64/clipshift dist/clipshift.app/Contents/MacOS/clipshift
+            cp build/clipshift.plist dist/clipshift.app/Contents/Info.plist
+            tar -czf dist/release/clipshift.app_amd64.tar.gz dist/clipshift.app
+      - run:
+          name: Homebrew formulas
+          command: |
+            awk -v macarm=$(sha256sum dist/release/clipshift_darwin_arm64.tar.gz | cut -f 1 -d " ") \
+                -v linuxarm=$(sha256sum dist/release/clipshift_linux_arm64.tar.gz | cut -f 1 -d " ") \
+                -v linuxamd=$(sha256sum dist/release/clipshift_linux_amd64.tar.gz | cut -f 1 -d " ") \
+                -v version=${CIRCLE_TAG/v/} \
+                { \
+                  gsub("--MAC-AMD-SHA--, macamd"); \
+                  gsub("--LINUX-ARM-SHA--", linuxarm); \
+                  gsub("--LINUX-AMD-SHA--", linuxamd); \
+                  gsub("--VERSION--", version); \
+                  print \
+                } build/clipshift.brew.template >> dist/release/clipshift.rb
 
+            awk -v arm=$(sha256sum dist/release/clipshift.app_amd64.tar.gz | cut -f 1 -d " ") \
+                -v version=${CIRCLE_TAG/v/} \
+                { \
+                  gsub("--AMD-SHA--, amd"); \
+                  gsub("--VERSION--", version); \
+                  print \
+                } build/clipshift.cask.template >> dist/release/clipshift_cask.rb
+      - run:
+          name: Scoop manifest
+          command: |
+            awk -v arm=$(sha256sum dist/release/clipshift_windows_arm64.zip | cut -f 1 -d " ") \
+                -v amd=$(sha256sum dist/release/clipshift_windows_amd64.zip | cut -f 1 -d " ") \
+                -v version=${CIRCLE_TAG/v/} \
+                { \
+                  gsub("--AMD-SHA--, amd"); \
+                  gsub("--ARM-SHA--", arm); \
+                  gsub("--VERSION--", version); \
+                  print \
+                } build/scoop.template >> dist/release/clipshift_scoop.json
+      - run:
+          name: Checksums
+          command: |
             cd dist/release
             sha256sum clipshift_linux_amd64.tar.gz >> checksums.txt
             sha256sum clipshift-tray_linux_amd64.tar.gz >> checksums.txt
             sha256sum clipshift_linux_arm64.tar.gz >> checksums.txt
             sha256sum clipshift-tray_linux_arm64.tar.gz >> checksums.txt
+
             sha256sum clipshift_darwin_amd64.tar.gz >> checksums.txt
             sha256sum clipshift-tray_darwin_amd64.tar.gz >> checksums.txt
+
             sha256sum clipshift_windows_amd64.zip >> checksums.txt
-            sha256sum clipshift-tray_windows_amd64.zip >> checksums.txt
             sha256sum clipshift_windows_arm64.zip >> checksums.txt
-            sha256sum clipshift-tray_windows_arm64.zip >> checksums.txt
+
+            sha256sum clipshift.app_amd64.tar.gz >> checksums.txt
+      - run:
+          name: Zip release
+          command: tar -czf dist/${CIRCLE_TAG}.tar.gz dist/release
       - store_artifacts:
-          path: dist/release
+          path: dist/dist/${CIRCLE_TAG}.tar.gz
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -147,3 +196,8 @@ workflows:
             - linux-win
             - linux-arm
             - mac-intel
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/

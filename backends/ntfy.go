@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	ntfyClient "heckel.io/ntfy/client"
+	ntfyLog "heckel.io/ntfy/log"
 )
 
 type NtfyClient struct {
@@ -26,6 +27,7 @@ func ntfyInitialize(config BackendConfig) *NtfyClient {
 	if config.EncryptionKey != "" {
 		c.Cipher = aes.GetCypher(config.EncryptionKey)
 	}
+	ntfyLog.SetLevel(ntfyLog.ErrorLevel)
 	c.Client = ntfyClient.New(&ntfyClient.Config{
 		DefaultHost: config.Host,
 	})
