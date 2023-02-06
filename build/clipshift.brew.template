@@ -9,7 +9,7 @@ class Clipshift < Formula
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_--VERSION--_darwin_arm64.tar.gz"
+      url "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_darwin_arm64.tar.gz"
       sha256 "--MAC-ARM-SHA--"
 
       def install
@@ -17,7 +17,7 @@ class Clipshift < Formula
       end
     end
     if Hardware::CPU.intel?
-      url "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_--VERSION--_darwin_amd64.tar.gz"
+      url "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_darwin_amd64.tar.gz"
       sha256 "--MAC-AMD-SHA--"
 
       def install
@@ -28,7 +28,7 @@ class Clipshift < Formula
 
   on_linux do
     if Hardware::CPU.intel?
-      url "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_--VERSION--_linux_amd64.tar.gz"
+      url "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_linux_amd64.tar.gz"
       sha256 "--LINUX-AMD-SHA--"
 
       def install
@@ -36,7 +36,7 @@ class Clipshift < Formula
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_--VERSION--_linux_arm64.tar.gz"
+      url "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_linux_arm64.tar.gz"
       sha256 "--LINUX-ARM-SHA--"
 
       def install

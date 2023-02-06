@@ -1,0 +1,18 @@
+cask "clipshift" do
+  arch arm: "arm64", intel: "amd64"
+  version "--VERSION--"
+  sha256 arm: "--ARM-SHA--",
+         intel: "--AMD-SHA--"
+  
+  url "https://github.com/getclipshift/clipshift/releases/download/v#{version}/clipshift.app_#{arch}.tar.gz"
+  name "clipshift"
+  desc "Clipboard syncing application"
+  homepage "https://github.com/getclipshift/clipshift"
+
+  app "clipshift.app"
+  binary "#{appdir}/clipshift.app/Contents/MacOS/clipshift"
+
+  zap trash: [
+    "~/.clipshift",
+  ]
+end

@@ -1,0 +1,34 @@
+{
+  "version": "--VERSION--",
+  "description": "Command line syncing application",
+  "homepage": "https://github.com/getclipshift/clipshift",
+  "license": "MIT",
+  "architecture": {
+      "64bit": {
+          "url": "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_windows_amd64.zip",
+          "hash": "--AMD-SHA--"
+      },
+      "arm64": {
+          "url": "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_windows_arm64.zip",
+          "hash": "--ARM-SHA--"
+      }
+  },
+  "bin": [
+    "clipshift.exe",
+    "clipshift-tray.exe"
+  ],
+  "checkver": {
+      "url": "https://api.github.com/repos/getclipshift/clipshift/releases",
+      "regex": "clipshift/releases/tag/v([\\w.-]+)"
+  },
+  "autoupdate": {
+      "architecture": {
+          "64bit": {
+              "url": "https://github.com/getclipshift/clipshift/releases/download/v$version/clipshift_windows_amd64.zip"
+          },
+          "arm64": {
+              "url": "https://github.com/getclipshift/clipshift/releases/download/v$version/clipshift_windows_arm64.zip"
+          }
+      }
+  }
+}

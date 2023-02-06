@@ -7,7 +7,7 @@
    CFBundleInfoDictionaryVersion = "6.0";
    CFBundlePackageType = APPL;
    CFBundleSignature = clipshift;
-   CFBundleExecutable = clipshift;
+   CFBundleExecutable = clipshift-tray;
    CFBundleIconFile = "clipshift.icns";
    NSHighResolutionCapable = false;
    LSUIElement = "1";
