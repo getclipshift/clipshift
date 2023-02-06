@@ -161,11 +161,8 @@ jobs:
             sha256sum clipshift_windows_arm64.zip >> checksums.txt
 
             sha256sum clipshift.app_amd64.tar.gz >> checksums.txt
-      - run:
-          name: Zip release
-          command: tar -czf "dist/${CIRCLE_TAG}.tar.gz" dist/release
       - store_artifacts:
-          path: dist/release/$CIRCLE_TAG.tar.gz
+          path: dist/release
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
