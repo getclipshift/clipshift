@@ -130,33 +130,21 @@ jobs:
                 -v linuxarm=$(sha256sum dist/release/clipshift_linux_arm64.tar.gz | cut -f 1 -d " ") \
                 -v linuxamd=$(sha256sum dist/release/clipshift_linux_amd64.tar.gz | cut -f 1 -d " ") \
                 -v version=${CIRCLE_TAG/v/} \
-                { \
-                  gsub("--MAC-AMD-SHA--, macamd"); \
-                  gsub("--LINUX-ARM-SHA--", linuxarm); \
-                  gsub("--LINUX-AMD-SHA--", linuxamd); \
-                  gsub("--VERSION--", version); \
-                  print \
-                } build/clipshift.brew.template >> dist/release/clipshift.rb
+                {gsub("--MAC-AMD-SHA--, macamd"); gsub("--LINUX-ARM-SHA--", linuxarm); gsub("--LINUX-AMD-SHA--", linuxamd); gsub("--VERSION--", version); print} \
+                build/clipshift.brew.template >> dist/release/clipshift.rb
 
             awk -v arm=$(sha256sum dist/release/clipshift.app_amd64.tar.gz | cut -f 1 -d " ") \
                 -v version=${CIRCLE_TAG/v/} \
-                { \
-                  gsub("--AMD-SHA--, amd"); \
-                  gsub("--VERSION--", version); \
-                  print \
-                } build/clipshift.cask.template >> dist/release/clipshift_cask.rb
+                {gsub("--AMD-SHA--, amd"); gsub("--VERSION--", version); print} \
+                build/clipshift.cask.template >> dist/release/clipshift_cask.rb
       - run:
           name: Scoop manifest
           command: |
             awk -v arm=$(sha256sum dist/release/clipshift_windows_arm64.zip | cut -f 1 -d " ") \
                 -v amd=$(sha256sum dist/release/clipshift_windows_amd64.zip | cut -f 1 -d " ") \
                 -v version=${CIRCLE_TAG/v/} \
-                { \
-                  gsub("--AMD-SHA--, amd"); \
-                  gsub("--ARM-SHA--", arm); \
-                  gsub("--VERSION--", version); \
-                  print \
-                } build/scoop.template >> dist/release/clipshift_scoop.json
+                {gsub("--AMD-SHA--, amd"); gsub("--ARM-SHA--", arm); gsub("--VERSION--", version); print} \
+                build/scoop.template >> dist/release/clipshift_scoop.json
       - run:
           name: Checksums
           command: |
@@ -199,5 +187,3 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-            branches:
-              only: main 
