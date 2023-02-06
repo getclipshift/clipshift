@@ -179,6 +179,30 @@ workflows:
       - mac-intel:
           requires:
             - linux-win
+  release:
+    jobs:
+      - linux-win:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - linux-arm:
+          requires:
+            - linux-win
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - mac-intel:
+          requires:
+            - linux-win
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
       - package:
           requires:
             - linux-win
