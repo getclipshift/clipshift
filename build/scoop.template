@@ -24,10 +24,10 @@
   "autoupdate": {
       "architecture": {
           "64bit": {
-              "url": "https://github.com/getclipshift/clipshift/releases/download/v$version/clipshift_windows_amd64.zip"
+              "url": "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_windows_amd64.zip"
           },
           "arm64": {
-              "url": "https://github.com/getclipshift/clipshift/releases/download/v$version/clipshift_windows_arm64.zip"
+              "url": "https://github.com/getclipshift/clipshift/releases/download/v--VERSION--/clipshift_windows_arm64.zip"
           }
       }
   }
