@@ -17,7 +17,7 @@ There are two flavors: a CLI named `clipshift` and a version that will show an i
 
     ```sh
     brew tap getclipshift/tap
-    brew install --cask clipshift
+    brew install --cask --no-quarantine clipshift
     ```
 
 - With [Scoop](https://scoop.sh/) (installs both `clipshift` and `clipshift-tray`)

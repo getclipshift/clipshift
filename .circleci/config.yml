@@ -32,10 +32,10 @@ jobs:
           command: CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -tags tray -ldflags "-H=windowsgui -X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/windows/amd64/clipshift-tray main.go
       - run:
           name: Windows ARM64
-          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -ldflags "-X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/windows/arm64/clipshift main.go
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -ldflags "-X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/windows/arm64/clipshift.exe main.go
       - run:
           name: Windows ARM64 Tray
-          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -tags tray -ldflags "-H=windowsgui -X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/windows/arm64/clipshift-tray main.go
+          command: CGO_ENABLED=1 GOOS=windows GOARCH=arm64 go build -tags tray -ldflags "-H=windowsgui -X 'github.com/getclipshift/clipshift/cmd.Version=${CIRCLE_TAG/v/}'" -o dist/windows/arm64/clipshift-tray.exe main.go
       - persist_to_workspace:
           root: dist
           paths:
@@ -111,8 +111,8 @@ jobs:
             tar -czf dist/release/clipshift-tray_linux_arm64.tar.gz -C dist/linux/arm64 clipshift-tray
             tar -czf dist/release/clipshift_darwin_amd64.tar.gz -C dist/darwin/amd64 clipshift
             tar -czf dist/release/clipshift-tray_darwin_amd64.tar.gz -C dist/darwin/amd64 clipshift-tray
-            zip -j dist/release/clipshift_windows_amd64.zip dist/windows/amd64/clipshift dist/windows/amd64/clipshift-tray
-            zip -j dist/release/clipshift_windows_arm64.zip dist/windows/arm64/clipshift dist/windows/arm64/clipshift-tray
+            zip -j dist/release/clipshift_windows_amd64.zip dist/windows/amd64/clipshift.exe dist/windows/amd64/clipshift-tray
+            zip -j dist/release/clipshift_windows_arm64.zip dist/windows/arm64/clipshift.exe dist/windows/arm64/clipshift-tray
       - run:
           name: "Mac App"
           command: |
