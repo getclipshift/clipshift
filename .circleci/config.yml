@@ -41,10 +41,10 @@ jobs:
           paths:
             - linux/amd64/clipshift
             - linux/amd64/clipshift-tray
-            - windows/amd64/clipshift
-            - windows/amd64/clipshift-tray
-            - windows/arm64/clipshift
-            - windows/arm64/clipshift-tray
+            - windows/amd64/clipshift.exe
+            - windows/amd64/clipshift-tray.exe
+            - windows/arm64/clipshift.exe
+            - windows/arm64/clipshift-tray.exe
   linux-arm:
     machine:
       image: ubuntu-2204:2022.10.2
@@ -102,7 +102,6 @@ jobs:
       - run:
           name: Zip binaries
           command: |
-            sudo apt-get install -y zip
             mkdir -p dist/release
 
             tar -czf dist/release/clipshift_linux_amd64.tar.gz -C dist/linux/amd64 clipshift
