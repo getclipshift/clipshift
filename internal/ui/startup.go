@@ -92,7 +92,7 @@ func winSetLaunchAtStartup(enabled bool) {
 		exePath, _ := os.Executable()
 		exeDir := filepath.Dir(exePath)
 		lnkAbs, _ := filepath.Abs(winLnkPath)
-		_, err := exec.Command("powershell", "-nologo", "-noprofile", fmt.Sprintf("$s=(New-Object -COM WScript.Shell).CreateShortcut('%s');$s.TargetPath='cmd.exe';$s.Arguments='/c \"start clipshift.exe\"';$s.WorkingDirectory='%s';$s.Save()", lnkAbs, exeDir)).CombinedOutput()
+		_, err := exec.Command("powershell", "-nologo", "-noprofile", fmt.Sprintf("$s=(New-Object -COM WScript.Shell).CreateShortcut('%s');$s.TargetPath='cmd.exe';$s.Arguments='/c \"start clipshift-tray.exe\"';$s.WorkingDirectory='%s';$s.Save()", lnkAbs, exeDir)).CombinedOutput()
 		if err != nil {
 			logger.Log.WithError(err).Error("Error creating startup link")
 		}

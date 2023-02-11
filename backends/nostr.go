@@ -36,7 +36,7 @@ func nostrInitialize(config BackendConfig) *NostrClient {
 		Config: config,
 		Client: viper.GetString("client-name"),
 	}
-	secret, err := nip04.ComputeSharedSecret(config.Pass, config.User)
+	secret, err := nip04.ComputeSharedSecret(config.User, config.Pass)
 	if err != nil {
 		log.WithError(err).Fatal("Unable to compute shared secret")
 		return &c
@@ -98,7 +98,7 @@ func (c *NostrClient) Post(clip string) error {
 		Kind:      4,
 		Content:   encrypted,
 		Tags: nostr.Tags{
-			nostr.Tag{"expiration", fmt.Sprintf("%d", time.Now().Add(10*time.Minute).UTC().Unix())},
+			nostr.Tag{"p", c.Config.User},
 		},
 	}
 	event.Sign(c.Config.Pass)
